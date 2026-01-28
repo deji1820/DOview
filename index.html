@@ -5545,11 +5545,13 @@
         const doEmail = 'himc@gmail.com';
         const studentEmail = 'student@gmail.com';
         const itEmail = 'it.himc@gmail.com';
+        const tcEmail = 'teacher.himc@gmail.com';
         const defaultPassword = '12345';
         
         // Portal URLs
         const studentPortalURL = 'https://studentview-two.vercel.app/';
         const itPortalURL = 'https://it-personnel-view.vercel.app/';
+        const teacherPortalURL = 'https://teacher-view.vercel.app/';
         
         // Validate credentials
         if (email === doEmail && password === defaultPassword) {
@@ -5571,6 +5573,13 @@
             } else {
                 alert('IT login successful! Please configure the IT portal URL in the code.');
             }
+        } else if (email === tcEmail && password === defaultPassword) {
+            // teacher login
+            if (teacherPortalURL) {
+                window.location.href = teacherPortalURL;
+            } else {
+                alert('IT login successful! Please configure the IT portal URL in the code.');
+            }    
         } else {
             // Show error message
             errorMessage.textContent = 'Invalid email or password. Please try again.';
