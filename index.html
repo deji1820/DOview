@@ -3975,12 +3975,7 @@
                 <div class="reports-header">
                     <h2 class="date-display">July 17, 2025</h2>
                     <div class="report-controls">
-                        <select class="date-selector">
-                            <option>Date</option>
-                            <option>July 17, 2025</option>
-                            <option>July 16, 2025</option>
-                            <option>July 15, 2025</option>
-                        </select>
+                        <input type="date" class="date-selector" id="reportDatePicker" value="2025-07-17" onchange="updateReportDate(this.value)">
                         <button class="btn-edit">Edit</button>
                         <button class="btn-delete">Delete</button>
                     </div>
@@ -5964,6 +5959,13 @@ function navigateToDocumentIssuance() {
         updateActiveNav(1);
         updateTopBar('📄', 'Daily Offense Reports', '');
     }
+
+    function updateReportDate(value) {
+    if (!value) return;
+    const date = new Date(value + 'T00:00:00');
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    document.querySelector('.date-display').textContent = date.toLocaleDateString('en-US', options);
+}
 
     function navigateToDisciplinaryMeasures() {
         hideAllPages();
