@@ -4434,10 +4434,10 @@
         <!-- Counseling Referral Page -->
         <!-- Counseling Referral Page -->
 <div id="counselingReferralPage" class="counseling-referral-page hidden">
-    <button class="back-button" onclick="backToOffenseManagement()">
-        <div class="back-icon">←</div>
-        <span>Counseling Referral</span>
-    </button>
+    <button class="back-button" onclick="handleCounselingBack()">
+    <div class="back-icon">←</div>
+    <span>Counseling Referral</span>
+</button>
 
     <div class="referral-content">
         <!-- Referral History Section -->
@@ -5651,6 +5651,16 @@
         updateTopBar('🏠', 'Home', 'Welcome Back, Admin!');
     }
 
+    function handleCounselingBack() {
+    const newReferralForm = document.getElementById('newReferralForm');
+    if (!newReferralForm.classList.contains('hidden')) {
+        newReferralForm.classList.add('hidden');
+        document.getElementById('referralHistory').style.display = 'block';
+    } else {
+        backToOffenseManagement();
+    }
+}
+
     function navigateToOffenseManagement(event) {
         event.preventDefault();
         hideAllPages();
@@ -6126,10 +6136,10 @@ function backToDisciplinaryMeasures() {
 }
 
     function showNewReferralForm() {
-        document.getElementById('referralHistory').style.display = 'none';
-        document.getElementById('newReferralForm').classList.remove('hidden');
-    }
-
+    document.getElementById('referralHistory').style.display = 'none';
+    document.getElementById('newReferralForm').classList.remove('hidden');
+    updateTopBar('📋', 'Counseling Referral', '');
+}
     function toggleFilterMenu() {
         const filterMenu = document.getElementById('filterMenu');
         filterMenu.classList.toggle('hidden');
