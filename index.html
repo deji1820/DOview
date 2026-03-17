@@ -6065,11 +6065,12 @@ function sortTableAlphabetically(pageId) {
     }
 
     function navigateToDocumentSubmission() {
-        hideAllPages();
-        document.getElementById('documentSubmissionPage').classList.remove('hidden');
-        updateActiveNav(2);
-        updateTopBar('📄', 'Document Submission', '');
-    }
+    hideAllPages();
+    document.getElementById('documentSubmissionPage').classList.remove('hidden');
+    updateActiveNav(2);
+    updateTopBar('📄', 'Document Submission', '');
+    sortTableAlphabetically('documentSubmissionPage');
+}
 
     function navigateToDocumentRequest() {
         hideAllPages();
