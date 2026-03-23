@@ -47,6 +47,79 @@
     font-weight: 600;
 }
 
+/* Pagination Styles */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: var(--white);
+    border-top: 1px solid #e0e0e0;
+    border-radius: 0 0 8px 8px;
+}
+
+.pagination-info {
+    font-size: 13px;
+    color: var(--gray);
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.page-btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #ddd;
+    background: var(--white);
+    border-radius: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    color: var(--dark-navy);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: var(--light-gray);
+    border-color: var(--navy);
+}
+
+.page-btn.active {
+    background: var(--dark-navy);
+    color: var(--white);
+    border-color: var(--dark-navy);
+}
+
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.rows-per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--gray);
+}
+
+.rows-select {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    color: var(--dark-navy);
+    background: var(--white);
+    cursor: pointer;
+}
+
 .status-pending {
     color: #ffc107;
     font-weight: 600;
@@ -4017,7 +4090,7 @@
     <th>Action</th>
 </tr>
                         </thead>
-                        <tbody id="reportsTableBody">
+                        <tbody id="tbody-daily-reports">
                             <tr>
                                 <td>12345678</td>
                                 <td>Dela Cruz, Juan</td>
@@ -4176,6 +4249,18 @@
                             </tr>
                         </tbody>
                     </table>
+                    <div class="pagination-container">
+    <div class="rows-per-page">
+        Rows per page:
+        <select class="rows-select" onchange="changeRowsPerPage(this, 'daily-reports')">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+        </select>
+    </div>
+    <div class="pagination-info" id="daily-reports-info"></div>
+    <div class="pagination-controls" id="daily-reports-controls"></div>
+</div>
                 </div>
 
                 <div class="save-button-container">
@@ -6048,6 +6133,7 @@ function navigateToDocumentIssuance() {
         document.getElementById('dailyReportsPage').classList.remove('hidden');
         updateActiveNav(1);
         updateTopBar('📄', 'Daily Offense Reports', '');
+        initPagination('daily-reports', 'tbody-daily-reports', 10);
     }
 
     function navigateToDailyReports() {
@@ -6055,6 +6141,7 @@ function navigateToDocumentIssuance() {
         document.getElementById('dailyReportsPage').classList.remove('hidden');
         updateActiveNav(1);
         updateTopBar('📄', 'Daily Offense Reports', '');
+        initPagination('daily-reports', 'tbody-daily-reports', 10);
     }
 
     function updateReportDate(value) {
@@ -6361,6 +6448,70 @@ if (referralFileInput && referralFileNameDisplay) {
             }
         });
     }
+    const paginationState = {};
+
+function initPagination(tableId, tbodyId, rowsPerPage) {
+    paginationState[tableId] = { tbodyId, rowsPerPage, currentPage: 1 };
+    renderPagination(tableId);
+}
+
+function renderPagination(tableId) {
+    const state = paginationState[tableId];
+    if (!state) return;
+    const tbody = document.getElementById(state.tbodyId);
+    if (!tbody) return;
+
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    const total = allRows.length;
+    const totalPages = Math.max(1, Math.ceil(total / state.rowsPerPage));
+    state.currentPage = Math.min(state.currentPage, totalPages);
+
+    const start = (state.currentPage - 1) * state.rowsPerPage;
+    const end = start + state.rowsPerPage;
+
+    allRows.forEach((row, i) => {
+        row.style.display = (i >= start && i < end) ? '' : 'none';
+    });
+
+    const infoEl = document.getElementById(`${tableId}-info`);
+    if (infoEl) {
+        const from = total === 0 ? 0 : start + 1;
+        const to = Math.min(end, total);
+        infoEl.textContent = `Showing ${from}–${to} of ${total}`;
+    }
+
+    const controlsEl = document.getElementById(`${tableId}-controls`);
+    if (!controlsEl) return;
+
+    let startPage = Math.max(1, state.currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+    let html = `<button class="page-btn" onclick="goToPage('${tableId}', ${state.currentPage - 1})" ${state.currentPage === 1 ? 'disabled' : ''}>&#8249;</button>`;
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<button class="page-btn ${i === state.currentPage ? 'active' : ''}" onclick="goToPage('${tableId}', ${i})">${i}</button>`;
+    }
+    html += `<button class="page-btn" onclick="goToPage('${tableId}', ${state.currentPage + 1})" ${state.currentPage === totalPages ? 'disabled' : ''}>&#8250;</button>`;
+    controlsEl.innerHTML = html;
+}
+
+function goToPage(tableId, page) {
+    const state = paginationState[tableId];
+    if (!state) return;
+    const tbody = document.getElementById(state.tbodyId);
+    const total = tbody ? tbody.querySelectorAll('tr').length : 0;
+    const totalPages = Math.max(1, Math.ceil(total / state.rowsPerPage));
+    state.currentPage = Math.max(1, Math.min(page, totalPages));
+    renderPagination(tableId);
+}
+
+function changeRowsPerPage(selectEl, tableId) {
+    const state = paginationState[tableId];
+    if (!state) return;
+    state.rowsPerPage = parseInt(selectEl.value);
+    state.currentPage = 1;
+    renderPagination(tableId);
+}
 </script>
 </body>
 </html>
