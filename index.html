@@ -5015,7 +5015,7 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tbody-doc-request">
                     <tr>
                         <td>Dela Cruz, Juan</td>
                         <td>10</td>
@@ -5207,6 +5207,18 @@
                     </tr>
                 </tbody>
             </table>
+            <div class="pagination-container">
+    <div class="rows-per-page">
+        Rows per page:
+        <select class="rows-select" onchange="changeRowsPerPage(this, 'doc-request')">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+        </select>
+    </div>
+    <div class="pagination-info" id="doc-request-info"></div>
+    <div class="pagination-controls" id="doc-request-controls"></div>
+</div>
         </div>
     </div>
 </div>
@@ -6188,6 +6200,7 @@ function sortTableAlphabetically(pageId) {
         document.getElementById('documentRequestPage').classList.remove('hidden');
         updateActiveNav(2);
         updateTopBar('📄', 'Document Request', '');
+        initPagination('doc-request', 'tbody-doc-request', 10);
     }
 
     function navigateToFormTemplates() {
