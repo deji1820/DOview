@@ -5712,6 +5712,7 @@
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainPage').classList.remove('hidden');
             setTimeout(initializeCharts, 100);
+            setMaxDates();
         } else if (email === studentEmail && password === defaultPassword) {
             // Student login
             if (studentPortalURL) {
@@ -6293,6 +6294,7 @@ function backToDisciplinaryMeasures() {
     });
 
     document.addEventListener('DOMContentLoaded', function() {
+        setMaxDates();
         const fileInput = document.getElementById('evidenceFile');
         const fileUploadText = document.getElementById('fileUploadText');
         
@@ -6521,6 +6523,12 @@ function changeRowsPerPage(selectEl, tableId) {
     state.rowsPerPage = parseInt(selectEl.value);
     state.currentPage = 1;
     renderPagination(tableId);
+}
+    function setMaxDates() {
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelectorAll('input[type="date"]').forEach(input => {
+        input.setAttribute('max', today);
+    });
 }
 </script>
 </body>
