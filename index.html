@@ -630,11 +630,12 @@
 
         /* Notices and Actions */
         .top-section {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+    margin-bottom: 40px;
+}
 
         .notice-card {
             background: var(--light-gray);
@@ -2760,6 +2761,36 @@
     border: 2px solid var(--dark-navy);
 }
 
+.add-violation-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: var(--dark-navy);
+    color: var(--gold);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    align-self: flex-start;
+}
+
+.add-violation-btn:hover {
+    background: var(--navy);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(45, 37, 80, 0.3);
+}
+
+.add-violation-plus {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+}
+
 .counseling-referral-table td {
     padding: 12px;
     font-size: 13px;
@@ -3644,10 +3675,10 @@
                         </div>
                     </div>
                     
-                    <div class="add-violation-card" onclick="showAddViolation()">
-                        <div class="add-violation-icon">⚠️</div>
-                        <div class="add-violation-text">Add Violation</div>
-                    </div>
+                    <button class="add-violation-btn" onclick="showAddViolation()">
+    <span class="add-violation-plus">+</span>
+    <span>Add Violation</span>
+</button>
                 </div>
 
                 <!-- Charts Section -->
