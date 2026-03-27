@@ -3766,137 +3766,104 @@
             </div>
 
             <!-- Dashboard Content -->
-            <div id="dashboardHome" class="dashboard-content">
+<div id="dashboardHome" class="dashboard-content">
 
-    <!-- Top Row: Notice + Add Violation Button -->
-    <div class="top-section">
-        <div class="notice-card">
-            <h2 class="notice-header">Immediate Notice:</h2>
-            <div class="notice-list">
-                <div class="notice-item">Dela Cruz, Juan - Committed 3 Level 4 Offense</div>
-                <div class="notice-item">Dela Cruz, Juan - Warning for Conduct Probation</div>
-                <div class="notice-item">Penduko, Pedro - Subject for Honor Ineligibility</div>
-            </div>
+  <!-- TOP ROW: Notice + Charts side by side -->
+  <div style="display: flex; gap: 30px; margin-bottom: 30px; align-items: flex-start;">
+
+    <!-- Left: Immediate Notice + Add Violation -->
+    <div style="display: flex; flex-direction: column; gap: 20px; flex: 0 0 340px;">
+      <div class="notice-card">
+        <h2 class="notice-header">Immediate Notice:</h2>
+        <div class="notice-list">
+          <div class="notice-item">Dela Cruz, Juan - Committed 3 Level 4 Offense</div>
+          <div class="notice-item">Dela Cruz, Juan - Warning for Conduct Probation</div>
+          <div class="notice-item">Penduko, Pedro - Subject for Honor Ineligibility</div>
         </div>
-
-        <button class="add-violation-btn" onclick="showAddViolation()">
-            <span class="add-violation-plus">+</span>
-            <span>Add Violation</span>
-        </button>
+      </div>
+      <button class="add-violation-btn" onclick="showAddViolation()">
+        <span class="add-violation-plus">+</span>
+        <span>Add Violation</span>
+      </button>
     </div>
 
-    <!-- Charts Section -->
-    <div class="charts-section">
-        <div class="charts-header">
-            <h2 class="quarter-title">QUARTER 1</h2>
-            <div class="filters">
-                <select class="filter-select">
-                    <option>Academic Year</option>
-                    <option>2024-2025</option>
-                    <option>2023-2024</option>
-                </select>
-                <select class="filter-select">
-                    <option>Quarter</option>
-                    <option>Quarter 1</option>
-                    <option>Quarter 2</option>
-                    <option>Quarter 3</option>
-                    <option>Quarter 4</option>
-                </select>
-            </div>
+    <!-- Right: Three Charts -->
+    <div style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+
+      <div class="chart-card">
+        <h3 class="chart-title">Frequency of Offenses</h3>
+        <div class="chart-container">
+          <canvas id="offenseFrequencyChart"></canvas>
         </div>
-
-        <!-- Charts Grid: title on top, chart, legend, sentence below -->
-        <div class="charts-grid">
-
-            <!-- Chart 1 -->
-            <div class="chart-card">
-                <h3 class="chart-title">Frequency of Offenses</h3>
-                <div class="chart-container">
-                    <canvas id="offenseFrequencyChart"></canvas>
-                </div>
-                <div class="chart-legend">
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #1e3a5f;"></span>
-                        <span>Late</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #4a90e2;"></span>
-                        <span>Loitering</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #2e5a8e;"></span>
-                        <span>Incomplete Uniform</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #5ba3f5;"></span>
-                        <span>Smoking</span>
-                    </div>
-                </div>
-                <div class="chart-summary-sentence">
-                    Most frequent offense this quarter: <strong>Late</strong> with <strong>105</strong> incidents, followed by Incomplete Uniform (83) and Smoking (22).
-                </div>
-            </div>
-
-            <!-- Chart 2 -->
-            <div class="chart-card">
-                <h3 class="chart-title">Grade Levels with the Most Level 4 Offenses</h3>
-                <div class="chart-container">
-                    <canvas id="gradeLevelChart"></canvas>
-                </div>
-                <div class="chart-legend">
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #1e3a5f;"></span>
-                        <span>Grade 11</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #4a90e2;"></span>
-                        <span>Grade 12</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #2e5a8e;"></span>
-                        <span>Grade 10</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #5ba3f5;"></span>
-                        <span>Grade 7</span>
-                    </div>
-                </div>
-                <div class="chart-summary-sentence">
-                    Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>39</strong> cases, followed by Grade 7 (18) and Grade 12 (12).
-                </div>
-            </div>
-
-            <!-- Chart 3 -->
-            <div class="chart-card">
-                <h3 class="chart-title">Most Reported Level of Offense</h3>
-                <div class="chart-container">
-                    <canvas id="offenseLevelChart"></canvas>
-                </div>
-                <div class="chart-legend">
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #1e3a5f;"></span>
-                        <span>Level 1</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #4a90e2;"></span>
-                        <span>Level 3</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #2e5a8e;"></span>
-                        <span>Level 2</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color" style="background: #5ba3f5;"></span>
-                        <span>Level 4</span>
-                    </div>
-                </div>
-                <div class="chart-summary-sentence">
-                    Most reported offense level this quarter: <strong>Level 1</strong> with <strong>100</strong> reports, followed by Level 4 (68) and Level 2 (22).
-                </div>
-            </div>
-
+        <div class="chart-legend">
+          <div class="legend-item"><span class="legend-color" style="background: #1e3a5f;"></span><span>Late</span></div>
+          <div class="legend-item"><span class="legend-color" style="background: #4a90e2;"></span><span>Loitering</span></div>
+          <div class="legend-item"><span class="legend-color" style="background: #2e5a8e;"></span><span>Incomplete Uniform</span></div>
+          <div class="legend-item"><span class="legend-color" style="background: #5ba3f5;"></span><span>Smoking</span></div>
         </div>
+      </div>
+
+      <div class="chart-card">
+        <h3 class="chart-title">Grade Levels with the Most Level 4 Offenses</h3>
+        <div class="chart-container">
+          <canvas id="gradeLevelChart"></canvas>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><span class="legend-color" style="background: #1e3a5f;"></span><span>Grade 11</span></div>
+          <div class="legend-item"><span class="legend-color" style="background: #4a90e2;"></span><span>Grade 12</span></div>
+          <div class="legend-item"><span class="legend-color" style="background: #2e5a8e;"></span><span>Grade 10</span></div>
+          <div class="legend-item"><span class="legend-color" style="background: #5ba3f5;"></span><span>Grade 7</span></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3 class="chart-title">Most Reported Level of Offense</h3>
+        <div class="chart-container">
+          <canvas id="offenseLevelChart"></canvas>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><span class="legend-color" style="background: #1e3a5f;"></span><span>Level 1</span></div>
+          <div class="legend-item"><span class="legend-color" style="background: #4a90e2;"></span><span>Level 3</span></div>
+          <div class="legend-item"><span class="legend-color" style="background: #2e5a8e;"></span><span>Level 2</span></div>
+          <div class="legend-item"><span class="legend-color" style="background: #5ba3f5;"></span><span>Level 4</span></div>
+        </div>
+      </div>
+
     </div>
+  </div>
+
+  <!-- BOTTOM ROW: Quarter filter + Summary sentences -->
+  <div class="charts-section">
+    <div class="charts-header">
+      <h2 class="quarter-title">QUARTER 1</h2>
+      <div class="filters">
+        <select class="filter-select">
+          <option>Academic Year</option>
+          <option>2024-2025</option>
+          <option>2023-2024</option>
+        </select>
+        <select class="filter-select">
+          <option>Quarter</option>
+          <option>Quarter 1</option>
+          <option>Quarter 2</option>
+          <option>Quarter 3</option>
+          <option>Quarter 4</option>
+        </select>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+      <div class="chart-summary-sentence">
+        Most frequent offense this quarter: <strong>Late</strong> with <strong>105</strong> incidents, followed by Incomplete Uniform (83) and Smoking (22).
+      </div>
+      <div class="chart-summary-sentence">
+        Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>39</strong> cases, followed by Grade 7 (18) and Grade 12 (12).
+      </div>
+      <div class="chart-summary-sentence">
+        Most reported offense level this quarter: <strong>Level 1</strong> with <strong>100</strong> reports, followed by Level 4 (68) and Level 2 (22).
+      </div>
+    </div>
+  </div>
+
 </div>
 
             <!-- Add Violation Page -->
