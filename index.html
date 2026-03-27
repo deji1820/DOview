@@ -3772,20 +3772,19 @@
   <div style="display: flex; gap: 30px; margin-bottom: 30px; align-items: flex-start;">
 
     <!-- Left: Immediate Notice + Add Violation -->
-    <div style="display: flex; flex-direction: column; gap: 20px; flex: 0 0 340px;">
-      <div class="notice-card">
-        <h2 class="notice-header">Immediate Notice:</h2>
-        <div class="notice-list">
-          <div class="notice-item">Dela Cruz, Juan - Committed 3 Level 4 Offense</div>
-          <div class="notice-item">Dela Cruz, Juan - Warning for Conduct Probation</div>
-          <div class="notice-item">Penduko, Pedro - Subject for Honor Ineligibility</div>
-        </div>
-      </div>
-      <button class="add-violation-btn" onclick="showAddViolation()">
-        <span class="add-violation-plus">+</span>
-        <span>Add Violation</span>
-      </button>
-    </div>
+    <!-- Left: Immediate Notice with Add Violation at bottom -->
+<div style="flex: 0 0 340px; background: var(--light-gray); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; gap: 20px;">
+  <h2 class="notice-header" style="margin-bottom: 0;">Immediate Notice:</h2>
+  <div class="notice-list">
+    <div class="notice-item">Dela Cruz, Juan - Committed 3 Level 4 Offense</div>
+    <div class="notice-item">Dela Cruz, Juan - Warning for Conduct Probation</div>
+    <div class="notice-item">Penduko, Pedro - Subject for Honor Ineligibility</div>
+  </div>
+  <button class="add-violation-btn" onclick="showAddViolation()" style="width: 100%; justify-content: center;">
+    <span class="add-violation-plus">+</span>
+    <span>Add Violation</span>
+  </button>
+</div>
 
     <!-- Right: Three Charts -->
     <div style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
