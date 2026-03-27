@@ -3834,32 +3834,26 @@
   <!-- BOTTOM ROW: Quarter filter + Summary sentences -->
   <div class="charts-section">
     <div class="charts-header">
-      <h2 class="quarter-title">QUARTER 1</h2>
-      <div class="filters">
-        <select class="filter-select">
-          <option>Academic Year</option>
-          <option>2024-2025</option>
-          <option>2023-2024</option>
-        </select>
-        <select class="filter-select">
-          <option>Quarter</option>
-          <option>Quarter 1</option>
-          <option>Quarter 2</option>
-          <option>Quarter 3</option>
-          <option>Quarter 4</option>
-        </select>
-      </div>
-    </div>
+  <h2 class="quarter-title" id="quarterTitle">1st Quarter</h2>
+  <div class="filters">
+    <select class="filter-select" id="academicYearFilter" onchange="updateQuarterDisplay()">
+      <option value="2024-2025">2024-2025</option>
+      <option value="2023-2024">2023-2024</option>
+      <option value="2022-2023">2022-2023</option>
+    </select>
+    <select class="filter-select" id="quarterFilter" onchange="updateQuarterDisplay()">
+      <option value="1">1st Quarter</option>
+      <option value="2">2nd Quarter</option>
+      <option value="3">3rd Quarter</option>
+      <option value="4">4th Quarter</option>
+    </select>
+  </div>
+</div>
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-      <div class="chart-summary-sentence">
-        Most frequent offense this quarter: <strong>Late</strong> with <strong>105</strong> incidents, followed by Incomplete Uniform (83) and Smoking (22).
-      </div>
-      <div class="chart-summary-sentence">
-        Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>39</strong> cases, followed by Grade 7 (18) and Grade 12 (12).
-      </div>
-      <div class="chart-summary-sentence">
-        Most reported offense level this quarter: <strong>Level 1</strong> with <strong>100</strong> reports, followed by Level 4 (68) and Level 2 (22).
-      </div>
+  <div class="chart-summary-sentence" id="summary1"></div>
+  <div class="chart-summary-sentence" id="summary2"></div>
+  <div class="chart-summary-sentence" id="summary3"></div>
+</div>
     </div>
   </div>
 
@@ -6529,14 +6523,197 @@ if (referralFileInput && referralFileNameDisplay) {
 }
     });
 
-    function initializeCharts() {
-        const colors = {
-            darkBlue: '#1e3a5f',
-            mediumBlue: '#2e5a8e',
-            blue: '#4a90e2',
-            lightBlue: '#5ba3f5'
-        };
+    // Quarter data per academic year
+const quarterData = {
+  "2024-2025": {
+    1: {
+      title: "1st Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [105,12,83,22] },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [39,10,12,18] },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [100,22,10,68] },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>105</strong> incidents, followed by Incomplete Uniform (83) and Smoking (22).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>39</strong> cases, followed by Grade 7 (18) and Grade 12 (12).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>100</strong> reports, followed by Level 4 (68) and Level 2 (22)."
+      ]
+    },
+    2: {
+      title: "2nd Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [88,20,60,15] },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [28,15,20,10] },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [85,30,18,50] },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>88</strong> incidents, followed by Incomplete Uniform (60) and Loitering (20).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>28</strong> cases, followed by Grade 12 (20) and Grade 10 (15).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>85</strong> reports, followed by Level 4 (50) and Level 2 (30)."
+      ]
+    },
+    3: {
+      title: "3rd Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [70,18,45,10] },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [20,12,15,8]  },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [70,20,15,35] },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>70</strong> incidents, followed by Incomplete Uniform (45) and Loitering (18).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>20</strong> cases, followed by Grade 12 (15) and Grade 10 (12).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>70</strong> reports, followed by Level 4 (35) and Level 2 (20)."
+      ]
+    },
+    4: {
+      title: "4th Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [55,10,38,8]  },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [15,8,10,5]   },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [55,15,10,25] },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>55</strong> incidents, followed by Incomplete Uniform (38) and Loitering (10).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>15</strong> cases, followed by Grade 12 (10) and Grade 10 (8).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>55</strong> reports, followed by Level 4 (25) and Level 2 (15)."
+      ]
+    }
+  },
+  "2023-2024": {
+    1: {
+      title: "1st Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [95,15,70,18] },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [30,12,18,14] },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [90,25,12,55] },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>95</strong> incidents, followed by Incomplete Uniform (70) and Smoking (18).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>30</strong> cases, followed by Grade 12 (18) and Grade 7 (14).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>90</strong> reports, followed by Level 4 (55) and Level 2 (25)."
+      ]
+    },
+    2: {
+      title: "2nd Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [78,11,55,12] },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [22,9,14,8]   },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [75,20,14,42] },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>78</strong> incidents, followed by Incomplete Uniform (55) and Loitering (11).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>22</strong> cases, followed by Grade 12 (14) and Grade 10 (9).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>75</strong> reports, followed by Level 4 (42) and Level 2 (20)."
+      ]
+    },
+    3: {
+      title: "3rd Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [60,9,40,8]   },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [18,7,10,6]   },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [60,16,10,28] },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>60</strong> incidents, followed by Incomplete Uniform (40) and Loitering (9).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>18</strong> cases, followed by Grade 12 (10) and Grade 10 (7).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>60</strong> reports, followed by Level 4 (28) and Level 2 (16)."
+      ]
+    },
+    4: {
+      title: "4th Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [45,7,30,6]   },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [12,5,8,4]    },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [45,12,8,20]  },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>45</strong> incidents, followed by Incomplete Uniform (30) and Loitering (7).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>12</strong> cases, followed by Grade 12 (8) and Grade 10 (5).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>45</strong> reports, followed by Level 4 (20) and Level 2 (12)."
+      ]
+    }
+  },
+  "2022-2023": {
+    1: {
+      title: "1st Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [80,10,60,14] },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [25,10,14,10] },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [78,18,10,44] },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>80</strong> incidents, followed by Incomplete Uniform (60) and Smoking (14).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>25</strong> cases, followed by Grade 12 (14) and Grade 10 (10).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>78</strong> reports, followed by Level 4 (44) and Level 2 (18)."
+      ]
+    },
+    2: {
+      title: "2nd Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [65,8,45,10]  },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [18,7,10,6]   },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [62,15,10,35] },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>65</strong> incidents, followed by Incomplete Uniform (45) and Loitering (8).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>18</strong> cases, followed by Grade 12 (10) and Grade 10 (7).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>62</strong> reports, followed by Level 4 (35) and Level 2 (15)."
+      ]
+    },
+    3: {
+      title: "3rd Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [50,7,35,8]   },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [14,5,8,4]    },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [50,12,8,22]  },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>50</strong> incidents, followed by Incomplete Uniform (35) and Smoking (8).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>14</strong> cases, followed by Grade 12 (8) and Grade 10 (5).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>50</strong> reports, followed by Level 4 (22) and Level 2 (12)."
+      ]
+    },
+    4: {
+      title: "4th Quarter",
+      offense: { labels: ["Late","Loitering","Incomplete Uniform","Smoking"], data: [38,5,25,5]   },
+      grade:   { labels: ["Grade 11","Grade 10","Grade 12","Grade 7"],        data: [10,4,6,3]    },
+      level:   { labels: ["Level 1","Level 2","Level 3","Level 4"],           data: [38,10,6,16]  },
+      summaries: [
+        "Most frequent offense this quarter: <strong>Late</strong> with <strong>38</strong> incidents, followed by Incomplete Uniform (25) and Loitering (5).",
+        "Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>10</strong> cases, followed by Grade 12 (6) and Grade 10 (4).",
+        "Most reported offense level this quarter: <strong>Level 1</strong> with <strong>38</strong> reports, followed by Level 4 (16) and Level 2 (10)."
+      ]
+    }
+  }
+};
 
+let chartInstances = {};
+const chartColors = ['#1e3a5f','#4a90e2','#2e5a8e','#5ba3f5'];
+
+function initializeCharts() {
+    const ids = ['offenseFrequencyChart','gradeLevelChart','offenseLevelChart'];
+    ids.forEach(id => {
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+        chartInstances[id] = new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: [], datasets: [{ data: [], backgroundColor: chartColors, borderWidth: 0 }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                cutout: '65%'
+            }
+        });
+    });
+    updateQuarterDisplay();
+}
+
+function updateQuarterDisplay() {
+    const year    = document.getElementById('academicYearFilter')?.value || '2024-2025';
+    const quarter = parseInt(document.getElementById('quarterFilter')?.value || '1');
+    const data    = quarterData[year]?.[quarter];
+    if (!data) return;
+
+    // Update title
+    document.getElementById('quarterTitle').textContent = data.title;
+
+    // Update charts
+    function updateChart(id, chartData) {
+        const chart = chartInstances[id];
+        if (!chart) return;
+        chart.data.labels = chartData.labels;
+        chart.data.datasets[0].data = chartData.data;
+        chart.update();
+    }
+    updateChart('offenseFrequencyChart', data.offense);
+    updateChart('gradeLevelChart',       data.grade);
+    updateChart('offenseLevelChart',     data.level);
+
+    // Update summaries
+    data.summaries.forEach((text, i) => {
+        const el = document.getElementById('summary' + (i + 1));
+        if (el) el.innerHTML = text;
+    });
+}
         const ctx1 = document.getElementById('offenseFrequencyChart').getContext('2d');
         new Chart(ctx1, {
             type: 'doughnut',
