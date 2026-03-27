@@ -3841,23 +3841,22 @@
           <option>2024-2025</option>
           <option>2023-2024</option>
         </select>
-        <select class="filter-select">
-          <option>Quarter</option>
-          <option>Quarter 1</option>
-          <option>Quarter 2</option>
-          <option>Quarter 3</option>
-          <option>Quarter 4</option>
-        </select>
+        <select class="filter-select" id="quarterSelect" onchange="updateQuarter(this.value)">
+  <option value="1">1st Quarter</option>
+  <option value="2">2nd Quarter</option>
+  <option value="3">3rd Quarter</option>
+  <option value="4">4th Quarter</option>
+</select>
       </div>
     </div>
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-      <div class="chart-summary-sentence">
+      <div class="chart-summary-sentence" id="sum1">
         Most frequent offense this quarter: <strong>Late</strong> with <strong>105</strong> incidents, followed by Incomplete Uniform (83) and Smoking (22).
       </div>
-      <div class="chart-summary-sentence">
+      <div class="chart-summary-sentence" id="sum2">
         Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>39</strong> cases, followed by Grade 7 (18) and Grade 12 (12).
       </div>
-      <div class="chart-summary-sentence">
+      <div class="chart-summary-sentence" id="sum3">
         Most reported offense level this quarter: <strong>Level 1</strong> with <strong>100</strong> reports, followed by Level 4 (68) and Level 2 (22).
       </div>
     </div>
@@ -5947,6 +5946,51 @@ function disapproveDocument(button) {
         updateActiveNav(1);
         updateTopBar('📁', 'Offense Management', '');
     }
+
+    const quarterData = {
+  1: {
+    label: '1ST QUARTER',
+    offense: { top: 'Late', topCount: 105, second: 'Incomplete Uniform', secondCount: 83, third: 'Smoking', thirdCount: 22 },
+    grade:   { top: 'Grade 11', topCount: 39, second: 'Grade 7', secondCount: 18, third: 'Grade 12', thirdCount: 12 },
+    level:   { top: 'Level 1', topCount: 100, second: 'Level 4', secondCount: 68, third: 'Level 2', thirdCount: 22 }
+  },
+  2: {
+    label: '2ND QUARTER',
+    offense: { top: 'Loitering', topCount: 89, second: 'Late', secondCount: 74, third: 'Incomplete Uniform', thirdCount: 61 },
+    grade:   { top: 'Grade 12', topCount: 31, second: 'Grade 11', secondCount: 27, third: 'Grade 9', thirdCount: 15 },
+    level:   { top: 'Level 1', topCount: 88, second: 'Level 2', secondCount: 55, third: 'Level 3', thirdCount: 30 }
+  },
+  3: {
+    label: '3RD QUARTER',
+    offense: { top: 'Incomplete Uniform', topCount: 97, second: 'Loitering', secondCount: 66, third: 'Late', thirdCount: 58 },
+    grade:   { top: 'Grade 10', topCount: 44, second: 'Grade 11', secondCount: 33, third: 'Grade 8', thirdCount: 20 },
+    level:   { top: 'Level 2', topCount: 78, second: 'Level 1', secondCount: 72, third: 'Level 4', thirdCount: 41 }
+  },
+  4: {
+    label: '4TH QUARTER',
+    offense: { top: 'Smoking', topCount: 45, second: 'Late', secondCount: 38, third: 'Loitering', thirdCount: 29 },
+    grade:   { top: 'Grade 7', topCount: 22, second: 'Grade 12', secondCount: 18, third: 'Grade 11', thirdCount: 14 },
+    level:   { top: 'Level 3', topCount: 55, second: 'Level 4', secondCount: 44, third: 'Level 1', thirdCount: 33 }
+  }
+};
+
+function updateQuarter(q) {
+  const d = quarterData[q];
+  document.querySelector('.quarter-title').textContent = d.label;
+
+  const o = d.offense;
+  document.getElementById('sum1').innerHTML =
+    `Most frequent offense this quarter: <strong>${o.top}</strong> with <strong>${o.topCount}</strong> incidents, followed by ${o.second} (${o.secondCount}) and ${o.third} (${o.thirdCount}).`;
+
+  const g = d.grade;
+  document.getElementById('sum2').innerHTML =
+    `Grade level with most Level 4 offenses: <strong>${g.top}</strong> with <strong>${g.topCount}</strong> cases, followed by ${g.second} (${g.secondCount}) and ${g.third} (${g.thirdCount}).`;
+
+  const l = d.level;
+  document.getElementById('sum3').innerHTML =
+    `Most reported offense level this quarter: <strong>${l.top}</strong> with <strong>${l.topCount}</strong> reports, followed by ${l.second} (${l.secondCount}) and ${l.third} (${l.thirdCount}).`;
+}
+    
     // Form Templates Functions
 function uploadTemplate() {
     // Create a file input element
