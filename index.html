@@ -628,6 +628,228 @@
     overflow-y: auto;
 }
 
+/* Add Violation Modal */
+.av-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    backdrop-filter: blur(4px);
+}
+
+.av-modal {
+    background: var(--white);
+    border-radius: 14px;
+    width: 92%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.av-modal-header {
+    background: var(--dark-navy);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.av-modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gold);
+}
+
+.av-modal-close {
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+    transition: opacity 0.2s;
+}
+
+.av-modal-close:hover { opacity: 0.7; }
+
+.av-modal-body {
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+    flex: 1;
+}
+
+/* Left: Form */
+.av-form-section {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    border-right: 1px solid var(--light-gray);
+}
+
+.av-form-row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.av-form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark-navy);
+}
+
+.av-form-input,
+.av-form-select,
+.av-form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--light-gray);
+    border: 2px solid transparent;
+    border-radius: 7px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: var(--dark-navy);
+    transition: border-color 0.2s;
+}
+
+.av-form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%232d2550' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 11px;
+    cursor: pointer;
+}
+
+.av-form-input:focus,
+.av-form-select:focus,
+.av-form-textarea:focus {
+    outline: none;
+    border-color: var(--navy);
+    background: var(--white);
+}
+
+.av-form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-style: italic;
+}
+
+.av-form-textarea::placeholder { color: #bbb; font-style: italic; }
+
+.av-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.av-submit-btn {
+    padding: 12px 48px;
+    background: var(--dark-navy);
+    color: var(--gold);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.av-submit-btn:hover {
+    background: var(--navy);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(45,37,80,0.3);
+}
+
+/* Right: Reference Panel */
+.av-reference-section {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--dark-navy);
+    padding: 24px 20px;
+    overflow-y: auto;
+}
+
+.av-ref-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+
+.av-ref-level {
+    margin-bottom: 16px;
+}
+
+.av-ref-level-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--dark-navy);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.av-ref-level-name {
+    font-size: 11px;
+    color: rgba(245,197,99,0.7);
+    font-style: italic;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.av-ref-offense-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.av-ref-offense-list li {
+    font-size: 11px;
+    color: rgba(248,249,250,0.8);
+    padding: 3px 0 3px 12px;
+    position: relative;
+    line-height: 1.4;
+    border-bottom: 1px solid rgba(212,166,80,0.1);
+}
+
+.av-ref-offense-list li:last-child { border-bottom: none; }
+
+.av-ref-offense-list li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+.av-ref-divider {
+    height: 1px;
+    background: rgba(212,166,80,0.2);
+    margin: 14px 0;
+}
+
 .add-violation-btn {
     display: inline-flex;
     align-items: center;
@@ -3708,6 +3930,147 @@
 
     <!-- Main Dashboard -->
     <div id="mainPage" class="dashboard hidden">
+
+        <!-- Add Violation Modal -->
+<div id="addViolationModal" class="av-modal-overlay hidden">
+    <div class="av-modal">
+        <div class="av-modal-header">
+            <span class="av-modal-title">+ Add Violation</span>
+            <button class="av-modal-close" onclick="closeAddViolationModal()">✕</button>
+        </div>
+        <div class="av-modal-body">
+            <!-- Form -->
+            <div class="av-form-section">
+                <form id="violationForm">
+                    <div class="av-form-row">
+                        <label class="av-form-label">Student ID:</label>
+                        <input type="text" class="av-form-input" placeholder="Enter Student ID" required>
+                    </div>
+                    <div class="av-form-row">
+                        <label class="av-form-label">Level of Offense:</label>
+                        <select class="av-form-select" id="offenseLevel" onchange="updateOffenseOptions(this.value)" required>
+                            <option value="">Select Level</option>
+                            <option value="1">Level 1 — Negligence</option>
+                            <option value="2">Level 2 — Minor Infractions</option>
+                            <option value="3">Level 3 — Disrespect & Dishonesty</option>
+                            <option value="4">Level 4 — Unbecoming Conduct</option>
+                        </select>
+                    </div>
+                    <div class="av-form-row">
+                        <label class="av-form-label">Offense:</label>
+                        <select class="av-form-select" id="offenseOptions" required>
+                            <option value="">Select Offense</option>
+                        </select>
+                    </div>
+                    <div class="av-form-row">
+                        <label class="av-form-label">Date:</label>
+                        <input type="date" class="av-form-input" id="offenseDate" required>
+                    </div>
+                    <div class="av-form-row">
+                        <label class="av-form-label">Reported by:</label>
+                        <select class="av-form-select" required>
+                            <option value="">Select Reporter</option>
+                            <option>Teacher 1</option>
+                            <option>Teacher 2</option>
+                            <option>Administrator</option>
+                            <option>Security Personnel</option>
+                        </select>
+                    </div>
+                    <div class="av-form-row">
+                        <label class="av-form-label">Remarks:</label>
+                        <textarea class="av-form-textarea" placeholder="Type your remarks here"></textarea>
+                    </div>
+                    <div class="av-form-actions">
+                        <button type="submit" class="av-submit-btn">Add</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Reference Panel -->
+            <div class="av-reference-section">
+                <div class="av-ref-title">Offense Level Reference</div>
+
+                <div class="av-ref-level">
+                    <div class="av-ref-level-badge">Level 1</div>
+                    <div class="av-ref-level-name">Negligence to Fulfill Basic Duties</div>
+                    <ul class="av-ref-offense-list">
+                        <li>Tardiness</li>
+                        <li>Unexpected absences</li>
+                        <li>Wearing inappropriate attire</li>
+                        <li>Failure to submit correspondence</li>
+                        <li>Sleeping in class</li>
+                        <li>Violation of SOPs</li>
+                        <li>Misbehavior</li>
+                        <li>Improper haircut</li>
+                        <li>No ID or No gate pass</li>
+                        <li>Loitering during class hours</li>
+                        <li>Littering</li>
+                        <li>Trespassing</li>
+                        <li>Disruption of classes</li>
+                    </ul>
+                </div>
+
+                <div class="av-ref-divider"></div>
+
+                <div class="av-ref-level">
+                    <div class="av-ref-level-badge">Level 2</div>
+                    <div class="av-ref-level-name">Minor Behavioral Infractions</div>
+                    <ul class="av-ref-offense-list">
+                        <li>Any disruptive behavior/material</li>
+                        <li>Using vulgar language</li>
+                        <li>Bringing electronic gadgets</li>
+                        <li>Staying after school hours</li>
+                        <li>Putting temporary marks on body</li>
+                        <li>Wearing make-up or nail polish</li>
+                        <li>Fancy haircut or hair color</li>
+                        <li>Unauthorized meetings/rallies</li>
+                        <li>Vandalism</li>
+                    </ul>
+                </div>
+
+                <div class="av-ref-divider"></div>
+
+                <div class="av-ref-level">
+                    <div class="av-ref-level-badge">Level 3</div>
+                    <div class="av-ref-level-name">Acts of Disrespect & Dishonesty</div>
+                    <ul class="av-ref-offense-list">
+                        <li>Any form of disrespect or malicious act</li>
+                        <li>Tampering of school documents</li>
+                        <li>Forgery / identity theft</li>
+                        <li>Bringing cigarettes or lighter</li>
+                        <li>Lending of IDs and gate pass</li>
+                        <li>Cutting classes</li>
+                        <li>Inflicting harm to self</li>
+                        <li>Stealing or attempted theft</li>
+                        <li>Bringing pornographic materials</li>
+                        <li>Bringing gambling materials</li>
+                        <li>Assault or threat to authority</li>
+                    </ul>
+                </div>
+
+                <div class="av-ref-divider"></div>
+
+                <div class="av-ref-level">
+                    <div class="av-ref-level-badge">Level 4</div>
+                    <div class="av-ref-level-name">Acts Unbecoming of an HIMC Student</div>
+                    <ul class="av-ref-offense-list">
+                        <li>Any form of cheating</li>
+                        <li>Any kind of bullying</li>
+                        <li>Violation of Data Privacy Act</li>
+                        <li>Violation of Child Protection Policy</li>
+                        <li>Threatening / harassment</li>
+                        <li>Smoking / vaping</li>
+                        <li>Extortion</li>
+                        <li>Under influence of drugs or alcohol</li>
+                        <li>Initiating fights or gambling</li>
+                        <li>Backbiting or rumor mongering</li>
+                        <li>Possession of deadly weapons</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -6312,9 +6675,33 @@ function navigateToDocumentIssuance() {
 }
 
     function showAddViolation() {
-        hideAllPages();
-        document.getElementById('addViolationPage').classList.remove('hidden');
+    document.getElementById('addViolationModal').classList.remove('hidden');
+}
+
+function closeAddViolationModal() {
+    document.getElementById('addViolationModal').classList.add('hidden');
+    document.getElementById('violationForm').reset();
+    document.getElementById('offenseOptions').innerHTML = '<option value="">Select Offense</option>';
+}
+
+function updateOffenseOptions(level) {
+    const offenseMap = {
+        '1': ['Tardiness','Unexpected absences','Wearing inappropriate attire','Failure to submit correspondence / have materials a 3rd time','Sleeping in class','Violation of SOPs','Misbehavior','Improper haircut','No ID or No gate pass','Loitering during class hours','Littering','Trespassing','Disruption of classes'],
+        '2': ['Any disruptive behavior/audio/video/material','Using vulgar language or indecent publication','Bringing of electronic gadgets','Staying in the school premises after school hours','Putting temporary marks on their bodies','Putting on make-up or colored nail polish','Fancy haircut or loud hair color','Holding unauthorized meetings/rallies/demonstrations','Vandalism'],
+        '3': ['Any form of disrespect or malicious act','Tampering of school document/property','Any form of dishonesty (forgery, identity theft)','Bringing of cigarettes, lighter or matches','Lending of IDs and gate pass','Cutting classes','Intentional/Unintentional inflicting of harm','Stealing or attempted theft','Bringing pornographic materials','Bringing of gambling materials','Assault or threat to a person in authority'],
+        '4': ['Any form of cheating','Any kind of bullying','Violation of the Data Privacy Act','Violation of the HIMC Child Protection Policy','Threatening/Harassment of any individual','Smoking cigarettes / vaping','Extortion','Exhibiting signs of under the influence of drugs or alcohol','Initiating fights or gambling','Backbiting or rumor mongering','Possession of deadly weapons']
+    };
+    const select = document.getElementById('offenseOptions');
+    select.innerHTML = '<option value="">Select Offense</option>';
+    if (offenseMap[level]) {
+        offenseMap[level].forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o;
+            opt.textContent = o;
+            select.appendChild(opt);
+        });
     }
+}
 
     function showDashboard() {
         hideAllPages();
@@ -6528,14 +6915,15 @@ function backToDisciplinaryMeasures() {
         }
 
         const violationForm = document.getElementById('violationForm');
-        if (violationForm) {
-            violationForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                showSuccessModal();
-                this.reset();
-                if (fileUploadText) fileUploadText.textContent = 'Click to upload or drag and drop';
-            });
-        }
+if (violationForm) {
+    violationForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        closeAddViolationModal();
+        showSuccessModal();
+        this.reset();
+        document.getElementById('offenseOptions').innerHTML = '<option value="">Select Offense</option>';
+    });
+}
 
         // Handle referral form submission
 const referralForm = document.getElementById('referralForm');
