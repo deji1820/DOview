@@ -1124,6 +1124,29 @@
             text-align: left;
         }
 
+        .col-header-filter {
+    width: 100%;
+    padding: 4px 22px 4px 7px;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    color: var(--dark-navy);
+    background: #fff;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath fill='%231e1838' d='M0 0l5 7 5-7z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 9px;
+    font-weight: 400;
+}
+
+.col-header-filter:focus {
+    outline: none;
+    border-color: var(--navy);
+}
+
         .form-input,
         .form-select,
         .form-textarea {
@@ -4789,22 +4812,39 @@
 
     <div class="records-container">
         <div class="search-filter-bar">
-    <input type="text" class="search-input" placeholder="Search Student Name or Student ID">
-    <input type="date" class="date-selector" value="2025-06-17">
+    <input type="text" class="search-input" id="sorSearchInput" placeholder="Search Student Name or Student ID" oninput="applyStudentRecordFilters()">
 </div>
         <div class="records-table-wrapper">
             <table class="reports-table">
                 <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Offense</th>
-                        <th>Level</th>
-                        <th>Date</th>
-                        <th>Reported by</th>
-                        <th>Remarks</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
+    <tr>
+        <th>Name</th>
+        <th>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <span>Offense</span>
+                <select id="sorOffenseFilter" class="col-header-filter" onchange="applyStudentRecordFilters()">
+                    <option value="">All Offenses</option>
+                </select>
+            </div>
+        </th>
+        <th>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <span>Level</span>
+                <select id="sorLevelFilter" class="col-header-filter" onchange="sorLevelChanged()">
+                    <option value="">All Levels</option>
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                    <option value="3">Level 3</option>
+                    <option value="4">Level 4</option>
+                </select>
+            </div>
+        </th>
+        <th>Date</th>
+        <th>Reported by</th>
+        <th>Remarks</th>
+        <th>Action</th>
+    </tr>
+</thead>
                 <tbody id="tbody-student-records">
     <tr>
         <td>Dela Cruz, Juan</td>
@@ -6612,6 +6652,60 @@ function printIssuanceDocument() {
         updateTopBar('📖', 'GMRC', '');
         initPagination('gmrc-table', 'tbody-gmrc-table', 10);
     }
+
+
+    const sorOffensesByLevel = {
+    '1': ['Tardiness','Unexpected absences','Wearing inappropriate attire','Failure to submit correspondence','Sleeping in class','Violation of SOPs','Misbehavior','Improper haircut','No ID or No gate pass','Loitering during class hours','Littering','Trespassing','Disruption of classes'],
+    '2': ['Any disruptive behavior/audio/video/material','Using vulgar language','Bringing of electronic gadgets','Staying after school hours','Putting temporary marks on body','Wearing make-up or nail polish','Fancy haircut or hair color','Unauthorized meetings/rallies','Vandalism'],
+    '3': ['Any form of disrespect or malicious act','Tampering of school documents','Forgery / identity theft','Bringing cigarettes or lighter','Lending of IDs and gate pass','Cutting classes','Inflicting harm to self','Stealing or attempted theft','Bringing pornographic materials','Bringing gambling materials','Assault or threat to authority'],
+    '4': ['Any form of cheating','Any kind of bullying','Violation of Data Privacy Act','Violation of Child Protection Policy','Threatening / harassment','Smoking / vaping','Extortion','Under influence of drugs or alcohol','Initiating fights or gambling','Backbiting or rumor mongering','Possession of deadly weapons']
+};
+
+function sorPopulateOffenseFilter(level) {
+    const select = document.getElementById('sorOffenseFilter');
+    select.innerHTML = '<option value="">All Offenses</option>';
+    const offenses = level ? sorOffensesByLevel[level] : [];
+    offenses.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o;
+        opt.textContent = o;
+        select.appendChild(opt);
+    });
+}
+
+function sorLevelChanged() {
+    const level = document.getElementById('sorLevelFilter').value;
+    document.getElementById('sorOffenseFilter').value = '';
+    sorPopulateOffenseFilter(level);
+    applyStudentRecordFilters();
+}
+
+function applyStudentRecordFilters() {
+    const search = (document.getElementById('sorSearchInput').value || '').toLowerCase();
+    const level = document.getElementById('sorLevelFilter').value;
+    const offense = document.getElementById('sorOffenseFilter').value;
+
+    const tbody = document.getElementById('tbody-student-records');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    rows.forEach(row => {
+        const name = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
+        const rowOffense = row.cells[1] ? row.cells[1].textContent.trim() : '';
+        const rowLevel = row.cells[2] ? row.cells[2].textContent.trim() : '';
+
+        const matchSearch = !search || name.includes(search);
+        const matchLevel = !level || rowLevel === level;
+        const matchOffense = !offense || rowOffense === offense;
+
+        row.style.display = (matchSearch && matchLevel && matchOffense) ? '' : 'none';
+    });
+
+    // Re-run pagination after filtering
+    initPagination('student-records', 'tbody-student-records', 10);
+}
+
+
+    
     // Navigate to Document Issuance
 function navigateToDocumentIssuance() {
     hideAllPages();
