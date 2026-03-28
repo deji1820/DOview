@@ -5949,26 +5949,28 @@
     <div class="gmrc-content-wrapper">
         <!-- Filter Controls -->
         <div class="gmrc-filters">
-            <select class="gmrc-filter-select" id="gradeFilter">
-                <option>Grade 10</option>
-                <option>Grade 7</option>
-                <option>Grade 8</option>
-                <option>Grade 9</option>
-                <option>Grade 11</option>
-                <option>Grade 12</option>
-            </select>
-            
-            <select class="gmrc-filter-select" id="sectionFilter">
-                <option>Xavier</option>
-                <option>St. Aquinas</option>
-                <option>St. Kostka</option>
-                <option>St. Ruiz</option>
-                <option>St. Pio</option>
-                <option>St. Augustine</option>
-            </select>
-            
-            <input type="text" class="gmrc-search" placeholder="Search Student" id="gmrcSearchInput">
-        </div>
+    <input type="text" class="gmrc-search" placeholder="Search Student" id="gmrcSearchInput">
+
+    <select class="gmrc-filter-select" id="gradeFilter">
+        <option value="">Grade</option>
+        <option value="Grade 7">Grade 7</option>
+        <option value="Grade 8">Grade 8</option>
+        <option value="Grade 9">Grade 9</option>
+        <option value="Grade 10">Grade 10</option>
+        <option value="Grade 11">Grade 11</option>
+        <option value="Grade 12">Grade 12</option>
+    </select>
+
+    <select class="gmrc-filter-select" id="sectionFilter">
+        <option value="">Section</option>
+        <option value="Xavier">Xavier</option>
+        <option value="St. Aquinas">St. Aquinas</option>
+        <option value="St. Kostka">St. Kostka</option>
+        <option value="St. Ruiz">St. Ruiz</option>
+        <option value="St. Pio">St. Pio</option>
+        <option value="St. Augustine">St. Augustine</option>
+    </select>
+</div>
 
         <!-- Class Information Card -->
         <div class="gmrc-class-card">
