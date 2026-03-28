@@ -5578,207 +5578,212 @@
         <div class="history-table-wrapper">
             <table class="history-table document-submission-table">
                 <thead>
-                    <tr>
-                        <th>Student Name</th>
-                        <th>Grade</th>
-                        <th>Section</th>
-                        <th>Document Request</th>
-                        <th>Date Requested</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
+    <tr>
+        <th>Student Name</th>
+        <th>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <span>Grade & Section</span>
+                <select id="drGradeFilter" class="col-header-filter" onchange="applyDocRequestFilters()">
+                    <option value="">All</option>
+                    <option value="3 - Rose">3 - Rose</option>
+                    <option value="4 - Hyacinth">4 - Hyacinth</option>
+                    <option value="5 - Hibiscus">5 - Hibiscus</option>
+                    <option value="7 - St. Augustine">7 - St. Augustine</option>
+                    <option value="8 - St. Pio">8 - St. Pio</option>
+                    <option value="9 - St. Kostka">9 - St. Kostka</option>
+                    <option value="9 - St. Ruiz">9 - St. Ruiz</option>
+                    <option value="9 - St. Ignatius">9 - St. Ignatius</option>
+                    <option value="10 - St. Xavier">10 - St. Xavier</option>
+                    <option value="10 - St. Aquinas">10 - St. Aquinas</option>
+                    <option value="10 - St. Janssen">10 - St. Janssen</option>
+                </select>
+            </div>
+        </th>
+        <th>Document Request</th>
+        <th>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <span>Date Requested</span>
+                <input type="date" id="drDateFilter" class="col-header-filter" style="padding:4px 7px;font-size:11px;" onchange="applyDocRequestFilters()">
+            </div>
+        </th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+</thead>
                 <tbody id="tbody-doc-request">
-                    <tr>
-                        <td>Dela Cruz, Juan</td>
-                        <td>10</td>
-                        <td>St. Xavier</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/17/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell">
-    <a class="action-link" href="#">View</a>
-    <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
-    <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
-</td>
-                    </tr>
-                    <tr>
-                        <td>Santos, Isabella</td>
-                        <td>10</td>
-                        <td>St. Aquinas</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/17/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell">
-    <a class="action-link" href="#">View</a>
-    <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
-    <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
-</td>
-                    </tr>
-                    <tr>
-                        <td>Mendoza, Clara</td>
-                        <td>9</td>
-                        <td>St. Kostka</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/17/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell">
-    <a class="action-link" href="#">View</a>
-    <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
-    <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
-</td>
-                    </tr>
-                    <tr>
-                        <td>Tolentino, Vince</td>
-                        <td>9</td>
-                        <td>St. Ruiz</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/17/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell">
-    <a class="action-link" href="#">View</a>
-    <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
-    <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
-</td>
-                    </tr>
-                    <tr>
-                        <td>Rosales, Miguel</td>
-                        <td>8</td>
-                        <td>St. Pio</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/17/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                       <td class="action-cell">
-    <a class="action-link" href="#">View</a>
-    <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
-    <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
-</td>
-                    </tr>
-                    <tr>
-                        <td>Gutierrez, Raphael</td>
-                        <td>8</td>
-                        <td>St. Pio</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/16/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell">
-    <a class="action-link" href="#">View</a>
-    <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
-    <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
-</td>
-                    </tr>
-                    <tr>
-                        <td>Villegas, Angel</td>
-                        <td>7</td>
-                        <td>St. Augustine</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/16/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell">
-    <a class="action-link" href="#">View</a>
-    <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
-    <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
-</td>
-                    </tr>
-                    <tr>
-                        <td>Reyes, Benedict</td>
-                        <td>4</td>
-                        <td>Hyacinth</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/16/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell">
-    <a class="action-link" href="#">View</a>
-    <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
-    <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
-</td>
-                    </tr>
-                    <tr>
-                        <td>Navarro, Vhong</td>
-                        <td>10</td>
-                        <td>St. Janssen</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/16/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell">
-    <a class="action-link" href="#">View</a>
-    <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
-    <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
-</td>
-                    </tr>
-                    <tr>
-                        <td>Gonzales, Maria</td>
-                        <td>3</td>
-                        <td>Rose</td>
-                        <td>Make-up Work Form</td>
-                        <td>06/16/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell"><a class="action-link" href="#">View</a></td>
-                    </tr>
-                    <tr>
-                        <td>Villanueva, John</td>
-                        <td>9</td>
-                        <td>St. Ignatius</td>
-                        <td>Gate Pass</td>
-                        <td>06/15/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell"><a class="action-link" href="#">View</a></td>
-                    </tr>
-                    <tr>
-                        <td>Del Rosario, Emmanuel</td>
-                        <td>5</td>
-                        <td>Hibiscus</td>
-                        <td>Gate Pass</td>
-                        <td>06/15/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell"><a class="action-link" href="#">View</a></td>
-                    </tr>
-                    <tr>
-                        <td>Dela Cruz, Juan</td>
-                        <td>10</td>
-                        <td>St. Xavier</td>
-                        <td>Gate Pass</td>
-                        <td>06/15/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell"><a class="action-link" href="#">View</a></td>
-                    </tr>
-                    <tr>
-                        <td>Santos, Isabella</td>
-                        <td>10</td>
-                        <td>St. Aquinas</td>
-                        <td>Gate Pass</td>
-                        <td>06/14/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell"><a class="action-link" href="#">View</a></td>
-                    </tr>
-                    <tr>
-                        <td>Mendoza, Clara</td>
-                        <td>9</td>
-                        <td>St. Kostka</td>
-                        <td>Gate Pass</td>
-                        <td>06/14/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell"><a class="action-link" href="#">View</a></td>
-                    </tr>
-                    <tr>
-                        <td>Tolentino, Vince</td>
-                        <td>9</td>
-                        <td>St. Ruiz</td>
-                        <td>Gate Pass</td>
-                        <td>06/14/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell"><a class="action-link" href="#">View</a></td>
-                    </tr>
-                    <tr>
-                        <td>Rosales, Miguel</td>
-                        <td>8</td>
-                        <td>St. Pio</td>
-                        <td>Gate Pass</td>
-                        <td>06/13/2025</td>
-                        <td class="status-cell status-returned">Returned</td>
-                        <td class="action-cell"><a class="action-link" href="#">View</a></td>
-                    </tr>
-                </tbody>
+    <tr>
+        <td>Dela Cruz, Juan</td>
+        <td>10 - St. Xavier</td>
+        <td>Make-up Work Form</td>
+        <td>06/17/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell">
+            <a class="action-link" href="#">View</a>
+            <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
+            <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Santos, Isabella</td>
+        <td>10 - St. Aquinas</td>
+        <td>Make-up Work Form</td>
+        <td>06/17/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell">
+            <a class="action-link" href="#">View</a>
+            <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
+            <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Mendoza, Clara</td>
+        <td>9 - St. Kostka</td>
+        <td>Make-up Work Form</td>
+        <td>06/17/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell">
+            <a class="action-link" href="#">View</a>
+            <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
+            <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Tolentino, Vince</td>
+        <td>9 - St. Ruiz</td>
+        <td>Make-up Work Form</td>
+        <td>06/17/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell">
+            <a class="action-link" href="#">View</a>
+            <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
+            <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Rosales, Miguel</td>
+        <td>8 - St. Pio</td>
+        <td>Make-up Work Form</td>
+        <td>06/17/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell">
+            <a class="action-link" href="#">View</a>
+            <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
+            <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Gutierrez, Raphael</td>
+        <td>8 - St. Pio</td>
+        <td>Make-up Work Form</td>
+        <td>06/16/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell">
+            <a class="action-link" href="#">View</a>
+            <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
+            <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Villegas, Angel</td>
+        <td>7 - St. Augustine</td>
+        <td>Make-up Work Form</td>
+        <td>06/16/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell">
+            <a class="action-link" href="#">View</a>
+            <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
+            <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Reyes, Benedict</td>
+        <td>4 - Hyacinth</td>
+        <td>Make-up Work Form</td>
+        <td>06/16/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell">
+            <a class="action-link" href="#">View</a>
+            <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
+            <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Navarro, Vhong</td>
+        <td>10 - St. Janssen</td>
+        <td>Make-up Work Form</td>
+        <td>06/16/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell">
+            <a class="action-link" href="#">View</a>
+            <a class="action-link" href="#" onclick="approveDocument(this); return false;">Approve</a> /
+            <a class="action-link" href="#" onclick="disapproveDocument(this); return false;" style="color: #dc3545;">Disapprove</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Gonzales, Maria</td>
+        <td>3 - Rose</td>
+        <td>Make-up Work Form</td>
+        <td>06/16/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell"><a class="action-link" href="#">View</a></td>
+    </tr>
+    <tr>
+        <td>Villanueva, John</td>
+        <td>9 - St. Ignatius</td>
+        <td>Gate Pass</td>
+        <td>06/15/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell"><a class="action-link" href="#">View</a></td>
+    </tr>
+    <tr>
+        <td>Del Rosario, Emmanuel</td>
+        <td>5 - Hibiscus</td>
+        <td>Gate Pass</td>
+        <td>06/15/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell"><a class="action-link" href="#">View</a></td>
+    </tr>
+    <tr>
+        <td>Dela Cruz, Juan</td>
+        <td>10 - St. Xavier</td>
+        <td>Gate Pass</td>
+        <td>06/15/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell"><a class="action-link" href="#">View</a></td>
+    </tr>
+    <tr>
+        <td>Santos, Isabella</td>
+        <td>10 - St. Aquinas</td>
+        <td>Gate Pass</td>
+        <td>06/14/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell"><a class="action-link" href="#">View</a></td>
+    </tr>
+    <tr>
+        <td>Mendoza, Clara</td>
+        <td>9 - St. Kostka</td>
+        <td>Gate Pass</td>
+        <td>06/14/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell"><a class="action-link" href="#">View</a></td>
+    </tr>
+    <tr>
+        <td>Tolentino, Vince</td>
+        <td>9 - St. Ruiz</td>
+        <td>Gate Pass</td>
+        <td>06/14/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell"><a class="action-link" href="#">View</a></td>
+    </tr>
+    <tr>
+        <td>Rosales, Miguel</td>
+        <td>8 - St. Pio</td>
+        <td>Gate Pass</td>
+        <td>06/13/2025</td>
+        <td class="status-cell status-returned">Returned</td>
+        <td class="action-cell"><a class="action-link" href="#">View</a></td>
+    </tr>
+</tbody>
             </table>
             <div class="pagination-container">
     <div class="rows-per-page">
@@ -6762,6 +6767,33 @@ function navigateToDocumentIssuance() {
     document.getElementById('documentIssuancePage').classList.remove('hidden');
     updateActiveNav(2);
     updateTopBar('📄', 'Document Issuance', '');
+}
+
+
+    function applyDocRequestFilters() {
+    const grade = document.getElementById('drGradeFilter').value;
+    const date = document.getElementById('drDateFilter').value;
+
+    let formattedDate = '';
+    if (date) {
+        const [y, m, d] = date.split('-');
+        formattedDate = `${m}/${d}/${y}`;
+    }
+
+    const tbody = document.getElementById('tbody-doc-request');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    rows.forEach(row => {
+        const rowGrade = row.cells[1] ? row.cells[1].textContent.trim() : '';
+        const rowDate = row.cells[3] ? row.cells[3].textContent.trim() : '';
+
+        const matchGrade = !grade || rowGrade === grade;
+        const matchDate = !formattedDate || rowDate === formattedDate;
+
+        row.style.display = (matchGrade && matchDate) ? '' : 'none';
+    });
+
+    initPagination('doc-request', 'tbody-doc-request', 10);
 }
 
     function updateTopBar(icon, title, subtitle) {
