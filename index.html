@@ -5343,15 +5343,38 @@
         <div class="history-table-wrapper">
             <table class="history-table document-submission-table">
                 <thead>
-                    <tr>
-                        <th>Student Name</th>
-                        <th>Grade & Section</th>
-                        <th>Supporting Document</th>
-                        <th>Date Submitted</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
+    <tr>
+        <th>Student Name</th>
+        <th>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <span>Grade & Section</span>
+                <select id="dsGradeFilter" class="col-header-filter" onchange="applyDocSubmissionFilters()">
+                    <option value="">All</option>
+                    <option value="3 - Rose">3 - Rose</option>
+                    <option value="4 - Hyacinth">4 - Hyacinth</option>
+                    <option value="5 - Hibiscus">5 - Hibiscus</option>
+                    <option value="7 - St. Augustine">7 - St. Augustine</option>
+                    <option value="8 - St. Pio">8 - St. Pio</option>
+                    <option value="9 - St. Kostka">9 - St. Kostka</option>
+                    <option value="9 - St. Ruiz">9 - St. Ruiz</option>
+                    <option value="9 - St. Ignatius">9 - St. Ignatius</option>
+                    <option value="10 - St. Xavier">10 - St. Xavier</option>
+                    <option value="10 - St. Aquinas">10 - St. Aquinas</option>
+                    <option value="10 - St. Janssen">10 - St. Janssen</option>
+                </select>
+            </div>
+        </th>
+        <th>Supporting Document</th>
+        <th>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <span>Date Submitted</span>
+                <input type="date" id="dsDateFilter" class="col-header-filter" style="padding:4px 7px;font-size:11px;" onchange="applyDocSubmissionFilters()">
+            </div>
+        </th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+</thead>
                 <tbody id="tbody-doc-submission">
                     <tr>
                         <td>Dela Cruz, Juan</td>
@@ -6349,6 +6372,33 @@ function disapproveDocument(button) {
         updateActiveNav(1);
         updateTopBar('📁', 'Offense Management', '');
     }
+
+    function applyDocSubmissionFilters() {
+    const grade = document.getElementById('dsGradeFilter').value;
+    const date = document.getElementById('dsDateFilter').value;
+
+    // Convert selected date to display format (MM/DD/YYYY) for comparison
+    let formattedDate = '';
+    if (date) {
+        const [y, m, d] = date.split('-');
+        formattedDate = `${m}/${d}/${y}`;
+    }
+
+    const tbody = document.getElementById('tbody-doc-submission');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    rows.forEach(row => {
+        const rowGrade = row.cells[1] ? row.cells[1].textContent.trim() : '';
+        const rowDate = row.cells[3] ? row.cells[3].textContent.trim() : '';
+
+        const matchGrade = !grade || rowGrade === grade;
+        const matchDate = !formattedDate || rowDate === formattedDate;
+
+        row.style.display = (matchGrade && matchDate) ? '' : 'none';
+    });
+
+    initPagination('doc-submission', 'tbody-doc-submission', 10);
+}
 
     const quarterData = {
   1: {
