@@ -1176,7 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="back-button" onclick="backToOffenseManagement()"><div class="back-icon">←</div><span>Daily Offense Reports</span></button>
             <div class="reports-container">
                 <div class="reports-header">
-                    <h2 class="date-display">July 17, 2025</h2>
+                    <h2 class="date-display" id="dailyReportsDateDisplay">July 17, 2025</h2>
                     <input type="date" class="date-selector" id="reportDatePicker" value="2025-07-17" onchange="updateReportDate(this.value)">
                 </div>
                 <div class="reports-table-wrapper">
@@ -1497,8 +1497,20 @@ function showDashboard() { hideAllPages(); document.getElementById('dashboardHom
 function navigateToDisciplinaryMeasures() { hideAllPages(); document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','The HIMC Disciplinary Measures',''); }
 function navigateToEditDisciplinaryMeasures() { hideAllPages(); document.getElementById('editDisciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Edit Disciplinary Measures',''); }
 function backToDisciplinaryMeasures() { hideAllPages(); document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','The HIMC Disciplinary Measures',''); }
-function navigateToDailyReports() { hideAllPages(); document.getElementById('dailyReportsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📄','Daily Offense Reports',''); initPagination('daily-reports','tbody-daily-reports',10); }
-function navigateToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); loadStudentOffenseRecords(); initStudentRecordSearch(); initPagination('student-records','tbody-student-records',10); }
+function navigateToDailyReports() {
+    hideAllPages();
+    document.getElementById('dailyReportsPage').classList.remove('hidden');
+    updateActiveNav(1);
+    updateTopBar('📄','Daily Offense Reports','');
+    const today = new Date().toISOString().split('T')[0];
+    const picker = document.getElementById('reportDatePicker');
+    if (picker) {
+        picker.value = today;
+        updateReportDate(today);
+    } else {
+        loadDailyReports('');
+    }
+}function navigateToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); loadStudentOffenseRecords(); initStudentRecordSearch(); initPagination('student-records','tbody-student-records',10); }
 function navigateToCounselingReferral() { hideAllPages(); document.getElementById('counselingReferralPage').classList.remove('hidden'); document.getElementById('newReferralForm').classList.add('hidden'); document.getElementById('referralHistory').style.display='block'; updateActiveNav(1); updateTopBar('📋','Counseling Referral',''); initPagination('referral-history','tbody-referral-history',10); }
 function navigateToDocumentSubmission() { hideAllPages(); document.getElementById('documentSubmissionPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Submission',''); initPagination('doc-submission','tbody-doc-submission',10); }
 function navigateToDocumentRequest() { hideAllPages(); document.getElementById('documentRequestPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Request',''); initPagination('doc-request','tbody-doc-request',10); }
@@ -1870,7 +1882,6 @@ function changeRowsPerPage(sel,tableId){const state=paginationState[tableId];if(
 //  DATE UTILS
 // ════════════════════════════════════════════════════════════
 function setMaxDates(){ const today=new Date().toISOString().split('T')[0]; document.querySelectorAll('input[type="date"]').forEach(i=>i.setAttribute('max',today)); }
-function updateReportDate(val){ if(!val)return; const d=new Date(val+'T00:00:00'); document.querySelector('.date-display').textContent=d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}); }
 
 // ════════════════════════════════════════════════════════════
 //  QUARTER SUMMARIES
