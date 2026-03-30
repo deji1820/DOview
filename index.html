@@ -1566,29 +1566,7 @@ function initStudentRecordSearch() {
 // ════════════════════════════════════════════════════════════
 //  ADD VIOLATION MODAL — student ID lookup
 // ════════════════════════════════════════════════════════════
-function initStudentIdLookup() {
-    const input = document.getElementById('avStudentId');
-    const display = document.getElementById('av-student-name-display');
-    if (!input || !display) return;
-    let timer;
-    input.addEventListener('input', function(){
-        clearTimeout(timer);
-        display.textContent = '';
-        if (this.value.trim().length < 3) return;
-        display.textContent = 'Looking up…';
-        timer = setTimeout(async()=>{
-            const s = await fetchStudentByNumber(this.value.trim());
-            if (s) {
-                const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
-                display.textContent = `✓ ${s.full_name_display}  |  ${gs}`;
-                display.style.color = '#276749';
-            } else {
-                display.textContent = '✗ Student not found';
-                display.style.color = '#c53030';
-            }
-        }, 500);
-    });
-}
+
 
 // ════════════════════════════════════════════════════════════
 //  COUNSELING REFERRAL — student dropdown
