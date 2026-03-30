@@ -128,18 +128,32 @@ function updateOffenseOptions(level) {
     const sel = document.getElementById('offenseOptions');
     sel.innerHTML = '<option value="">Select Offense</option>';
     if (!level) return;
+
     const types = offenseTypesByLevel[level] || [];
-    if (!types.length) {
-        const fb = {
-            '1':['Tardiness','Unexpected absences','Wearing inappropriate attire','Failure to submit correspondence / have materials a 3rd time','Sleeping in class','Violation of SOPs','Misbehavior','Improper haircut','No ID or No gate pass','Loitering during class hours','Littering','Trespassing','Disruption of classes'],
-            '2':['Any disruptive behavior/audio/video/material','Using vulgar language or indecent publication','Bringing of electronic gadgets','Staying in the school premises after school hours','Putting temporary marks on their bodies','Putting on make-up or colored nail polish','Fancy haircut or loud hair color','Holding unauthorized meetings/rallies/demonstrations','Vandalism'],
-            '3':['Any form of disrespect or malicious act','Tampering of school document/property','Any form of dishonesty (forgery, identity theft)','Bringing of cigarettes, lighter or matches','Lending of IDs and gate pass','Cutting classes','Intentional/Unintentional inflicting of harm','Stealing or attempted theft','Bringing pornographic materials','Bringing of gambling materials','Assault or threat to a person in authority'],
-            '4':['Any form of cheating','Any kind of bullying','Violation of the Data Privacy Act','Violation of the HIMC Child Protection Policy','Threatening/Harassment of any individual','Smoking cigarettes / vaping','Extortion','Exhibiting signs of under the influence of drugs or alcohol','Initiating fights or gambling','Backbiting or rumor mongering','Possession of deadly weapons']
-        };
-        (fb[level]||[]).forEach(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;sel.appendChild(opt);});
+    if (types.length) {
+        types.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.offense_type_id;
+            opt.textContent = t.title;
+            sel.appendChild(opt);
+        });
         return;
     }
-    types.forEach(t=>{const opt=document.createElement('option');opt.value=t.offense_type_id;opt.textContent=t.title;opt.dataset.title=t.title;sel.appendChild(opt);});
+
+    // Fallback hardcoded list
+    const fb = {
+        '1': ['Tardiness','Unexpected absences','Wearing inappropriate attire','Failure to submit correspondence / have materials a 3rd time','Sleeping in class','Violation of SOPs','Misbehavior','Improper haircut','No ID or No gate pass','Loitering during class hours','Littering','Trespassing','Disruption of classes'],
+        '2': ['Any disruptive behavior/audio/video/material','Using vulgar language or indecent publication','Bringing of electronic gadgets','Staying in the school premises after school hours','Putting temporary marks on their bodies','Putting on make-up or colored nail polish','Fancy haircut or loud hair color','Holding unauthorized meetings/rallies/demonstrations','Vandalism'],
+        '3': ['Any form of disrespect or malicious act','Tampering of school document/property','Any form of dishonesty (forgery, identity theft)','Bringing of cigarettes, lighter or matches','Lending of IDs and gate pass','Cutting classes','Intentional/Unintentional inflicting of harm','Stealing or attempted theft','Bringing pornographic materials','Bringing of gambling materials','Assault or threat to a person in authority'],
+        '4': ['Any form of cheating','Any kind of bullying','Violation of the Data Privacy Act','Violation of the HIMC Child Protection Policy','Threatening/Harassment of any individual','Smoking cigarettes / vaping','Extortion','Exhibiting signs of under the influence of drugs or alcohol','Initiating fights or gambling','Backbiting or rumor mongering','Possession of deadly weapons']
+    };
+
+    (fb[level] || []).forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o;
+        opt.textContent = o;
+        sel.appendChild(opt);
+    });
 }
 
 // ════════════════════════════════════════════════════════════
