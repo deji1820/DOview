@@ -1356,32 +1356,32 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <!-- ── GMRC GRADE ─────────────────────────────────────── -->
-        <div id="gmrcPage" class="gmrc-page hidden">
-            <div class="gmrc-content-wrapper">
-                <div class="gmrc-filters">
-                    <input type="text" class="gmrc-search" placeholder="Search Student" id="gmrcSearchInput">
-                    <select class="gmrc-filter-select" id="gradeFilter"><option value="">Grade</option><option value="Grade 7">Grade 7</option><option value="Grade 8">Grade 8</option><option value="Grade 9">Grade 9</option><option value="Grade 10">Grade 10</option><option value="Grade 11">Grade 11</option><option value="Grade 12">Grade 12</option></select>
-                    <select class="gmrc-filter-select" id="sectionFilter"><option value="">Section</option><option value="Xavier">Xavier</option><option value="St. Aquinas">St. Aquinas</option><option value="St. Kostka">St. Kostka</option><option value="St. Ruiz">St. Ruiz</option></select>
-                </div>
-                <div class="gmrc-class-card">
-                    <div class="gmrc-class-header">
-                        <div class="gmrc-class-info"><strong>Grade & Section:</strong> 10 - Xavier<br><strong>Adviser:</strong> Ms. Mereope Sharma</div>
-                        <div class="gmrc-action-buttons"><button class="btn-gmrc-action btn-gmrc-edit">Edit</button><button class="btn-gmrc-action btn-gmrc-print">Print</button></div>
-                    </div>
-                    <div class="gmrc-table-wrapper">
-                        <table class="gmrc-grade-table">
-                            <thead><tr><th>Name</th><th>D.O. GMRC Grade</th><th>Status</th><th>Remarks</th><th>Action</th></tr></thead>
-                            <tbody id="tbody-gmrc-table"></tbody>
-                        </table>
-                        <div class="pagination-container">
-                            <div class="rows-per-page">Rows per page: <select class="rows-select" onchange="changeRowsPerPage(this,'gmrc-table')"><option value="5">5</option><option value="10" selected>10</option><option value="25">25</option></select></div>
-                            <div class="pagination-info" id="gmrc-table-info"></div>
-                            <div class="pagination-controls" id="gmrc-table-controls"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- ── GMRC GRADE ─────────────────────────────────────── -->
+<div id="gmrcPage" class="gmrc-page hidden">
+    <div class="gmrc-content-wrapper">
+        <div class="gmrc-filters">
+            <input type="text" class="gmrc-search" placeholder="Search Student or Section" id="gmrcSearchInput">
+            <select class="gmrc-filter-select" id="gradeFilter">
+                <option value="">All Grades</option>
+                <option value="Grade 1">Grade 1</option>
+                <option value="Grade 2">Grade 2</option>
+                <option value="Grade 3">Grade 3</option>
+                <option value="Grade 4">Grade 4</option>
+                <option value="Grade 5">Grade 5</option>
+                <option value="Grade 6">Grade 6</option>
+                <option value="Grade 7">Grade 7</option>
+                <option value="Grade 8">Grade 8</option>
+                <option value="Grade 9">Grade 9</option>
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 11">Grade 11</option>
+                <option value="Grade 12">Grade 12</option>
+            </select>
         </div>
+        <div id="gmrc-sections-container" style="display:flex;flex-direction:column;gap:25px;">
+            <div style="text-align:center;color:#aaa;padding:40px;">Loading sections…</div>
+        </div>
+    </div>
+</div>
 
         <!-- ── GMRC INDIVIDUAL ───────────────────────────────── -->
         <div id="gmrcIndividualPage" class="gmrc-individual-page hidden">
@@ -1484,8 +1484,15 @@ function updateActiveNav(index) {
 function navigateToHome(e) { e.preventDefault(); showDashboard(); updateActiveNav(0); updateTopBar('🏠','Home','Welcome Back, Admin!'); }
 function navigateToOffenseManagement(e) { e.preventDefault(); hideAllPages(); document.getElementById('offenseManagementPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📁','Offense Management',''); }
 function navigateToDocuments(e) { e.preventDefault(); hideAllPages(); document.getElementById('documentsPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Documents',''); }
-function navigateToGMRC(e) { if(e) e.preventDefault(); hideAllPages(); document.getElementById('gmrcPage').classList.remove('hidden'); updateActiveNav(3); updateTopBar('📖','GMRC Grade',''); loadGMRCStudents(); initGMRCFilters(); initPagination('gmrc-table','tbody-gmrc-table',10); }
-
+function navigateToGMRC(e) {
+    if(e) e.preventDefault();
+    hideAllPages();
+    document.getElementById('gmrcPage').classList.remove('hidden');
+    updateActiveNav(3);
+    updateTopBar('📖','GMRC Grade','');
+    loadGMRCSections();
+    initGMRCFilters();
+}
 function showDashboard() { hideAllPages(); document.getElementById('dashboardHome').classList.remove('hidden'); updateActiveNav(0); initStudentIdLookup(); setTimeout(initializeCharts, 100); setMaxDates(); }
 function navigateToDisciplinaryMeasures() { hideAllPages(); document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','The HIMC Disciplinary Measures',''); }
 function navigateToEditDisciplinaryMeasures() { hideAllPages(); document.getElementById('editDisciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Edit Disciplinary Measures',''); }
@@ -1504,8 +1511,15 @@ function backToGMRC() { hideAllPages(); document.getElementById('gmrcPage').clas
 function handleCounselingBack() { const f=document.getElementById('newReferralForm'); if(!f.classList.contains('hidden')){ f.classList.add('hidden'); document.getElementById('referralHistory').style.display='block'; } else { backToOffenseManagement(); } }
 function showNewReferralForm() { document.getElementById('referralHistory').style.display='none'; document.getElementById('newReferralForm').classList.remove('hidden'); loadCounselingStudentDropdown(); }
 function navigateToStudentRecordsDetail(name, gradeSection, adviser) { hideAllPages(); document.getElementById('studentRecordsDetailPage').classList.remove('hidden'); document.getElementById('studentDetailName').textContent=name; document.getElementById('studentDetailGradeSection').textContent=gradeSection; document.getElementById('studentDetailAdviser').textContent=adviser||'—'; updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); }
-function viewStudentGMRC(name) { hideAllPages(); document.getElementById('gmrcIndividualPage').classList.remove('hidden'); document.getElementById('individualStudentName').textContent=name; updateActiveNav(3); updateTopBar('📖','GMRC',''); }
-
+function viewStudentGMRC(name, studentNumber, grade, section) {
+    hideAllPages();
+    document.getElementById('gmrcIndividualPage').classList.remove('hidden');
+    document.getElementById('individualStudentName').textContent = name;
+    document.getElementById('individualStudentId').textContent = studentNumber || '—';
+    document.getElementById('individualGradeSection').textContent = (grade && section) ? `${grade} - ${section}` : '—';
+    updateActiveNav(3);
+    updateTopBar('📖','GMRC','');
+}
 // ════════════════════════════════════════════════════════════
 //  API HELPERS
 // ════════════════════════════════════════════════════════════
@@ -1604,36 +1618,114 @@ function setOrAddOption(sel, val) {
 // ════════════════════════════════════════════════════════════
 //  GMRC — live student list
 // ════════════════════════════════════════════════════════════
-async function loadGMRCStudents() {
-    const tbody = document.getElementById('tbody-gmrc-table');
+// ════════════════════════════════════════════════════════════
+//  GMRC — sections + students
+// ════════════════════════════════════════════════════════════
+let allSections = [];
+
+async function loadGMRCSections() {
+    const container = document.getElementById('gmrc-sections-container');
+    container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">Loading sections…</div>`;
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_sections.php`);
+        const data = await res.json();
+        if (!data.success || !data.sections.length) {
+            container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No sections found.</div>`;
+            return;
+        }
+        allSections = data.sections;
+        renderGMRCSections(allSections);
+    } catch(err) {
+        console.error('loadGMRCSections:', err);
+        container.innerHTML = `<div style="text-align:center;color:#dc3545;padding:40px;">Failed to load sections.</div>`;
+    }
+}
+
+function renderGMRCSections(sections) {
+    const container = document.getElementById('gmrc-sections-container');
+    if (!sections.length) {
+        container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No sections match your filter.</div>`;
+        return;
+    }
+    container.innerHTML = sections.map(sec => `
+        <div class="gmrc-class-card" id="gmrc-card-${sec.section_id}">
+            <div class="gmrc-class-header">
+                <div class="gmrc-class-info">
+                    <strong>Grade & Section:</strong> ${escHtml(sec.grade_level)} - ${escHtml(sec.section_name)}<br>
+                    <strong>Adviser:</strong> ${escHtml(sec.adviser_name || '—')}
+                </div>
+                <div class="gmrc-action-buttons">
+                    <button class="btn-gmrc-action btn-gmrc-print" onclick="printGMRCSection(${sec.section_id})">Print</button>
+                </div>
+            </div>
+            <div class="gmrc-table-wrapper">
+                <table class="gmrc-grade-table">
+                    <thead><tr><th>Name</th><th>Total Demerits</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody id="gmrc-tbody-${sec.section_id}">
+                        <tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `).join('');
+
+    // Load students for each section
+    sections.forEach(sec => loadGMRCSectionStudents(sec.section_id));
+}
+
+async function loadGMRCSectionStudents(sectionId) {
+    const tbody = document.getElementById(`gmrc-tbody-${sectionId}`);
     if (!tbody) return;
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">Loading students…</td></tr>`;
-    const params = {};
-    const g = (document.getElementById('gradeFilter')||{}).value;
-    const s = (document.getElementById('sectionFilter')||{}).value;
-    if (g) params.grade=g;
-    if (s) params.section=s;
-    const students = await fetchStudents(params);
-    if (!students.length) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No students found.</td></tr>`; return; }
-    tbody.innerHTML = students.map(s => `<tr><td>${escHtml(s.full_name_display)}</td><td>—</td><td>—</td><td>—</td><td><a href="#" class="gmrc-view-link" onclick="viewStudentGMRC('${escJs(s.full_name_display)}'); return false;">View</a></td></tr>`).join('');
-    initPagination('gmrc-table','tbody-gmrc-table',10);
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_gmrc.php?section_id=${sectionId}`);
+        const data = await res.json();
+        if (!data.success || !data.students.length) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">No students.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = data.students.map(s => `
+            <tr>
+                <td>${escHtml(s.full_name_display)}</td>
+                <td>${s.total_demerits}</td>
+                <td class="${s.status === 'Conduct Probation' ? 'status-conduct-probation' : s.status === 'Warning' ? 'grade-red' : ''}">${escHtml(s.status)}</td>
+                <td><a href="#" class="gmrc-view-link" onclick="viewStudentGMRC('${escJs(s.full_name_display)}','${escJs(s.student_number)}','${escJs(s.grade_level)}','${escJs(s.section_name)}'); return false;">View</a></td>
+            </tr>
+        `).join('');
+    } catch(err) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#dc3545;padding:20px;">Failed to load.</td></tr>`;
+    }
 }
 
 function initGMRCFilters() {
-    const g = document.getElementById('gradeFilter');
-    const s = document.getElementById('sectionFilter');
-    if (g && !g._wired) { g.addEventListener('change', loadGMRCStudents); g._wired=true; }
-    if (s && !s._wired) { s.addEventListener('change', loadGMRCStudents); s._wired=true; }
-    const search = document.getElementById('gmrcSearchInput');
-    if (search && !search._wired) {
-        search.addEventListener('input', function(){
-            const term = this.value.toLowerCase();
-            document.querySelectorAll('#tbody-gmrc-table tr').forEach(row => {
-                row.style.display = (row.cells[0]&&row.cells[0].textContent.toLowerCase().includes(term)) ? '' : 'none';
-            });
-        });
-        search._wired = true;
+    const gradeFilter = document.getElementById('gradeFilter');
+    const searchInput = document.getElementById('gmrcSearchInput');
+
+    if (gradeFilter && !gradeFilter._wired) {
+        gradeFilter.addEventListener('change', applyGMRCFilters);
+        gradeFilter._wired = true;
     }
+    if (searchInput && !searchInput._wired) {
+        searchInput.addEventListener('input', applyGMRCFilters);
+        searchInput._wired = true;
+    }
+}
+
+function applyGMRCFilters() {
+    const grade  = document.getElementById('gradeFilter').value;
+    const search = document.getElementById('gmrcSearchInput').value.toLowerCase();
+    const filtered = allSections.filter(sec => {
+        const matchGrade  = !grade  || sec.grade_level === grade;
+        const matchSearch = !search ||
+            sec.section_name.toLowerCase().includes(search) ||
+            sec.grade_level.toLowerCase().includes(search) ||
+            (sec.adviser_name || '').toLowerCase().includes(search);
+        return matchGrade && matchSearch;
+    });
+    renderGMRCSections(filtered);
+}
+
+function printGMRCSection(sectionId) {
+    alert('Print functionality for section ' + sectionId + ' coming soon.');
 }
 
 // ════════════════════════════════════════════════════════════
