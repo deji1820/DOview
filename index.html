@@ -1270,11 +1270,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div id="newReferralForm" class="new-referral-form hidden">
                     <h2 class="form-title">New Referral</h2>
                     <form id="referralForm">
-                        <div class="referral-form-row"><label class="referral-form-label">Name:</label><select class="referral-form-select" id="referralStudentSelect" required><option value="">Select Student</option></select></div>
+                        <div class="referral-form-row">
+    <label class="referral-form-label">Name:</label>
+    <div style="position:relative;width:100%;">
+        <input type="text" class="referral-form-input" id="referralStudentInput"
+            placeholder="Search student name…" autocomplete="off"
+            oninput="filterReferralStudents(this.value)"
+            onfocus="openReferralDropdown()" required>
+        <input type="hidden" id="referralStudentNumber">
+        <div id="referralStudentDropdown" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid var(--navy);border-top:none;border-radius:0 0 7px 7px;max-height:200px;overflow-y:auto;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
+    </div>
+</div>
                         <div class="referral-form-row"><label class="referral-form-label">Grade:</label><select class="referral-form-select" id="referralGradeSelect" required><option value="">Select Grade</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
-                        <div class="referral-form-row"><label class="referral-form-label">Section:</label><select class="referral-form-select" id="referralSectionSelect" required><option value="">Select Section</option></select></div>
+                        <div class="referral-form-row"><label class="referral-form-label">Section:</label><input type="text" class="referral-form-input" id="referralSectionSelect" placeholder="Auto-filled" readonly style="background:#f0f0f0;cursor:not-allowed;"></div>
                         <div class="referral-form-row"><label class="referral-form-label">Date:</label><input type="date" class="referral-form-input" required></div>
-                        <div class="referral-form-row"><label class="referral-form-label">Offense Record:</label><div class="referral-file-upload-display"><span id="referralFileNameDisplay">Choose file</span><input type="file" id="referralFileInput" class="referral-file-input" accept=".pdf,.doc,.docx"></div></div>
+                        <div class="referral-form-row">
+    <label class="referral-form-label">Offense Record:</label>
+    <input type="text" class="referral-form-input" id="referralOffenseRecord"
+        placeholder="Auto-filled from student record" readonly style="background:#f0f0f0;">
+</div>
                         <div class="referral-form-row"><label class="referral-form-label">Remarks / Notes:</label><textarea class="referral-form-textarea" placeholder="Type your remarks / notes here"></textarea></div>
                         <div class="referral-form-actions"><button type="button" class="btn-print">Print</button><button type="submit" class="btn-send">Send</button></div>
                     </form>
@@ -1521,8 +1535,7 @@ function backToDocuments() { hideAllPages(); document.getElementById('documentsP
 function backToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); }
 function backToGMRC() { hideAllPages(); document.getElementById('gmrcPage').classList.remove('hidden'); updateActiveNav(3); updateTopBar('📖','GMRC Grade',''); }
 function handleCounselingBack() { const f=document.getElementById('newReferralForm'); if(!f.classList.contains('hidden')){ f.classList.add('hidden'); document.getElementById('referralHistory').style.display='block'; } else { backToOffenseManagement(); } }
-function showNewReferralForm() { document.getElementById('referralHistory').style.display='none'; document.getElementById('newReferralForm').classList.remove('hidden'); loadCounselingStudentDropdown(); }
-function navigateToStudentRecordsDetail(name, gradeSection, adviser, studentNumber) {
+function showNewReferralForm() { document.getElementById('referralHistory').style.display='none'; document.getElementById('newReferralForm').classList.remove('hidden'); loadCounselingStudentDropdown(); }function navigateToStudentRecordsDetail(name, gradeSection, adviser, studentNumber) {
     hideAllPages();
     document.getElementById('studentRecordsDetailPage').classList.remove('hidden');
     document.getElementById('studentDetailName').textContent = name;
@@ -1656,35 +1669,92 @@ function initStudentRecordSearch() {
 // ════════════════════════════════════════════════════════════
 //  COUNSELING REFERRAL — student dropdown
 // ════════════════════════════════════════════════════════════
+let allReferralStudents = [];
+
 async function loadCounselingStudentDropdown() {
-    const nameSelect    = document.getElementById('referralStudentSelect');    
-    const gradeSelect   = document.getElementById('referralGradeSelect');
-    const sectionSelect = document.getElementById('referralSectionSelect');
-    if (!nameSelect) return;
-    nameSelect.innerHTML = '<option value="">Loading…</option>';
-    const students = await fetchStudents();
-    nameSelect.innerHTML = '<option value="">Select Student</option>';
-    students.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.student_number;
-        opt.textContent = s.full_name_display;
-        opt.dataset.grade   = s.grade_level   || '';
-        opt.dataset.section = s.section_name  || '';
-        nameSelect.appendChild(opt);
-    });
-    nameSelect.onchange = function(){
-        const sel = this.options[this.selectedIndex];
-        if (!sel || !sel.value) return;
-        if (gradeSelect)   setOrAddOption(gradeSelect,   sel.dataset.grade);
-        if (sectionSelect) setOrAddOption(sectionSelect, sel.dataset.section);
-    };
+    const input = document.getElementById('referralStudentInput');
+    if (!input) return;
+    input.value = '';
+    document.getElementById('referralStudentNumber').value = '';
+    allReferralStudents = await fetchStudents();
+    renderReferralDropdown('');
 }
 
-function setOrAddOption(sel, val) {
-    if (!val) return;
-    for (const opt of sel.options) { if (opt.value===val||opt.textContent.trim()===val) { sel.value=opt.value; return; } }
-    const opt = document.createElement('option'); opt.value=val; opt.textContent=val; sel.appendChild(opt); sel.value=val;
+function openReferralDropdown() {
+    renderReferralDropdown(document.getElementById('referralStudentInput').value);
+    document.getElementById('referralStudentDropdown').style.display = 'block';
 }
+
+function filterReferralStudents(val) {
+    document.getElementById('referralStudentNumber').value = '';
+    renderReferralDropdown(val);
+    document.getElementById('referralStudentDropdown').style.display = 'block';
+}
+
+function renderReferralDropdown(query) {
+    const dd  = document.getElementById('referralStudentDropdown');
+    const q   = query.trim().toLowerCase();
+    const matches = q
+        ? allReferralStudents.filter(s => s.full_name_display.toLowerCase().includes(q) || s.student_number.includes(q))
+        : allReferralStudents;
+
+    if (!matches.length) {
+        dd.innerHTML = `<div style="padding:10px 14px;color:#aaa;font-style:italic;font-size:14px;">No students found</div>`;
+        return;
+    }
+    dd.innerHTML = matches.map(s => `
+        <div style="padding:10px 14px;font-size:14px;color:var(--dark-navy);cursor:pointer;border-bottom:1px solid #f0f0f0;"
+             onmouseover="this.style.background='#f5f5f5'"
+             onmouseout="this.style.background=''"
+             onmousedown="selectReferralStudent('${escJs(s.student_number)}','${escJs(s.full_name_display)}','${escJs(s.grade_level||'')}','${escJs(s.section_name||'')}')">
+            <strong>${escHtml(s.full_name_display)}</strong>
+            <span style="color:#888;font-size:12px;margin-left:8px;">${escHtml(s.grade_level||'')} - ${escHtml(s.section_name||'')}</span>
+        </div>
+    `).join('');
+}
+
+async function selectReferralStudent(studentNumber, fullName, grade, section) {
+    document.getElementById('referralStudentInput').value  = fullName;
+    document.getElementById('referralStudentNumber').value = studentNumber;
+    document.getElementById('referralStudentDropdown').style.display = 'none';
+
+    // Auto-fill Grade and Section
+    const gradeEl = document.getElementById('referralGradeSelect');
+    if (gradeEl) gradeEl.value = grade || '—';
+
+    const sectionEl = document.getElementById('referralSectionSelect');
+    if (sectionEl) sectionEl.value = section || '—';
+
+    // Auto-fill Offense Record
+    const offenseEl = document.getElementById('referralOffenseRecord');
+    if (offenseEl) {
+        offenseEl.value = 'Loading…';
+        try {
+            const res  = await apiFetch(`${API_BASE}/get_student_offenses.php?student_number=${encodeURIComponent(studentNumber)}`);
+            const data = await res.json();
+            if (data.success && data.offenses && data.offenses.length) {
+                offenseEl.value = data.offenses
+                    .slice(0, 5)
+                    .map(o => `Lvl ${o.offense_level} - ${o.offense} (${o.offense_date})`)
+                    .join('; ');
+            } else {
+                offenseEl.value = 'No offense records found.';
+            }
+        } catch (err) {
+            console.error('selectReferralStudent:', err);
+            offenseEl.value = 'Failed to load offense record.';
+        }
+    }
+}
+
+// Close referral dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    const dd = document.getElementById('referralStudentDropdown');
+    const input = document.getElementById('referralStudentInput');
+    if (dd && input && !dd.contains(e.target) && e.target !== input) {
+        dd.style.display = 'none';
+    }
+});
 
 // ════════════════════════════════════════════════════════════
 //  GMRC — live student list
