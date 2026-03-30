@@ -1549,9 +1549,17 @@ function navigateToDailyReports() {
     } else {
         loadDailyReports('');
     }
-}function navigateToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); loadStudentOffenseRecords(); initStudentRecordSearch(); initPagination('student-records','tbody-student-records',10); }
-function navigateToCounselingReferral() { hideAllPages(); document.getElementById('counselingReferralPage').classList.remove('hidden'); document.getElementById('newReferralForm').classList.add('hidden'); document.getElementById('referralHistory').style.display='block'; updateActiveNav(1); updateTopBar('📋','Counseling Referral',''); initPagination('referral-history','tbody-referral-history',10); }
-function navigateToDocumentSubmission() { hideAllPages(); document.getElementById('documentSubmissionPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Submission',''); initPagination('doc-submission','tbody-doc-submission',10); }
+}
+function navigateToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); loadStudentOffenseRecords(); initStudentRecordSearch(); initPagination('student-records','tbody-student-records',10); }
+function navigateToCounselingReferral() { 
+    hideAllPages(); 
+    document.getElementById('counselingReferralPage').classList.remove('hidden'); 
+    document.getElementById('newReferralForm').classList.add('hidden'); 
+    document.getElementById('referralHistory').style.display='block'; 
+    updateActiveNav(1); 
+    updateTopBar('📋','Counseling Referral',''); 
+    loadReferralHistory(); 
+}function navigateToDocumentSubmission() { hideAllPages(); document.getElementById('documentSubmissionPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Submission',''); initPagination('doc-submission','tbody-doc-submission',10); }
 function navigateToDocumentRequest() { hideAllPages(); document.getElementById('documentRequestPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Request',''); initPagination('doc-request','tbody-doc-request',10); }
 function navigateToDocumentIssuance() { hideAllPages(); document.getElementById('documentIssuancePage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Issuance',''); }
 function navigateToFormTemplates() { hideAllPages(); document.getElementById('formTemplatesPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Form Templates',''); }
@@ -2203,6 +2211,51 @@ function initializeCharts(){
     const c1=document.getElementById('offenseFrequencyChart'); if(c1&&!c1._done){new Chart(c1.getContext('2d'),cfg(['Late','Incomplete Uniform','Loitering','Smoking'],[105,83,12,22]));c1._done=true;}
     const c2=document.getElementById('gradeLevelChart');       if(c2&&!c2._done){new Chart(c2.getContext('2d'),cfg(['Grade 11','Grade 10','Grade 12','Grade 7'],[39,10,12,18]));c2._done=true;}
     const c3=document.getElementById('offenseLevelChart');     if(c3&&!c3._done){new Chart(c3.getContext('2d'),cfg(['Level 1','Level 2','Level 3','Level 4'],[100,22,10,68]));c3._done=true;}
+}
+
+function prependToReferralHistory(data) {
+    const tbody = document.getElementById('tbody-referral-history');
+    if (!tbody) return;
+    const ph = tbody.querySelector('td[colspan]');
+    if (ph) ph.closest('tr').remove();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td>${escHtml(data.name)}</td>
+        <td>${escHtml(data.grade)}</td>
+        <td>${escHtml(data.section)}</td>
+        <td>${escHtml(data.remarks || '—')}</td>
+        <td>${escHtml(data.date_sent || '—')}</td>
+    `;
+    tbody.prepend(tr);
+    initPagination('referral-history', 'tbody-referral-history', 10);
+}
+
+async function loadReferralHistory() {
+    const tbody = document.getElementById('tbody-referral-history');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr>`;
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_referrals.php`);
+        const data = await res.json();
+        if (!data.success || !data.referrals.length) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No referrals yet.</td></tr>`;
+            initPagination('referral-history', 'tbody-referral-history', 10); 
+            return;
+        }
+        tbody.innerHTML = data.referrals.map(r => `
+            <tr>
+                <td>${escHtml(r.student_name)}</td>
+                <td>${escHtml(r.grade)}</td>
+                <td>${escHtml(r.section)}</td>
+                <td>${escHtml(r.remarks || '—')}</td>
+                <td>${escHtml(r.date_sent || '—')}</td>
+            </tr>
+        `).join('');
+        initPagination('referral-history', 'tbody-referral-history', 10);
+    } catch(err) {
+        console.error('loadReferralHistory:', err);
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc3545;padding:30px;">Failed to load.</td></tr>`;
+    }
 }
 </script>
 </body>
