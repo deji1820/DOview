@@ -17,7 +17,7 @@ let teachersLoaded = false;
 async function loadTeachers() {
     if (teachersLoaded) return;
     try {
-        const res  = await fetch(`${API_BASE}/get_teachers.php`);
+        const res  = await apiFetch(`${API_BASE}/get_teachers.php`);
         const data = await res.json();
         if (data.success) { allTeachers = data.teachers; teachersLoaded = true; }
     } catch(err) { console.error('loadTeachers:', err); }
@@ -120,7 +120,7 @@ let offenseTypesLoaded  = false;
 async function loadOffenseTypes() {
     if (offenseTypesLoaded) return;
     try {
-        const res  = await fetch(`${API_BASE}/get_offense_types.php`);
+        const res  = await apiFetch(`${API_BASE}/get_offense_types.php`);
         const data = await res.json();
         if (data.success) { offenseTypesByLevel = data.by_level || {}; offenseTypesLoaded = true; }
     } catch(err) { console.error('loadOffenseTypes:', err); }
@@ -188,9 +188,9 @@ async function submitViolation(e) {
     submitBtn.disabled = true; submitBtn.textContent = 'Saving…';
 
     try {
-        const res = await fetch(`${API_BASE}/add_violation.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await apiFetch(`${API_BASE}/add_violation.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 student_number:  studentNumber,
                 offense_type_id: parseInt(offenseTypeId),
@@ -247,7 +247,7 @@ async function loadDailyReports(dateStr) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr>`;
     const params = dateStr ? `?date=${dateStr}` : '';
     try {
-        const res  = await fetch(`${API_BASE}/get_violations.php${params}`);
+        const res  = await apiFetch(`${API_BASE}/get_violations.php${params}`);
         const data = await res.json();
         if (!data.success || !data.violations.length) {
             tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#aaa;padding:30px;">No violations recorded${dateStr?' for this date':''}.`;
@@ -1451,6 +1451,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ════════════════════════════════════════════════════════════
 const API_BASE = 'https://tabularly-tactless-deloras.ngrok-free.dev';
 
+async function apiFetch(url, options = {}) {
+    const headers = { 'ngrok-skip-browser-warning': 'true', ...(options.headers || {}) };
+    return fetch(url, { ...options, headers });
+}
 // ════════════════════════════════════════════════════════════
 //  NAVIGATION
 // ════════════════════════════════════════════════════════════
@@ -1508,7 +1512,7 @@ function viewStudentGMRC(name) { hideAllPages(); document.getElementById('gmrcIn
 async function fetchStudents(params={}) {
     const qs = new URLSearchParams(params).toString();
     try {
-        const res  = await fetch(`${API_BASE}/get_students.php${qs?'?'+qs:''}`);
+        const res  = await apiFetch(`${API_BASE}/get_students.php${qs?'?'+qs:''}`);
         const data = await res.json();
         return data.success ? data.students : [];
     } catch(err) { console.error('fetchStudents:', err); return []; }
