@@ -1522,8 +1522,43 @@ function backToStudentRecords() { hideAllPages(); document.getElementById('stude
 function backToGMRC() { hideAllPages(); document.getElementById('gmrcPage').classList.remove('hidden'); updateActiveNav(3); updateTopBar('📖','GMRC Grade',''); }
 function handleCounselingBack() { const f=document.getElementById('newReferralForm'); if(!f.classList.contains('hidden')){ f.classList.add('hidden'); document.getElementById('referralHistory').style.display='block'; } else { backToOffenseManagement(); } }
 function showNewReferralForm() { document.getElementById('referralHistory').style.display='none'; document.getElementById('newReferralForm').classList.remove('hidden'); loadCounselingStudentDropdown(); }
-function navigateToStudentRecordsDetail(name, gradeSection, adviser) { hideAllPages(); document.getElementById('studentRecordsDetailPage').classList.remove('hidden'); document.getElementById('studentDetailName').textContent=name; document.getElementById('studentDetailGradeSection').textContent=gradeSection; document.getElementById('studentDetailAdviser').textContent=adviser||'—'; updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); }
-function viewStudentGMRC(name, studentNumber, grade, section) {
+function navigateToStudentRecordsDetail(name, gradeSection, adviser, studentNumber) {
+    hideAllPages();
+    document.getElementById('studentRecordsDetailPage').classList.remove('hidden');
+    document.getElementById('studentDetailName').textContent = name;
+    document.getElementById('studentDetailGradeSection').textContent = gradeSection;
+    document.getElementById('studentDetailAdviser').textContent = adviser || '—';
+    updateActiveNav(1);
+    updateTopBar('📋', 'Student Offense Records', '');
+    loadStudentOffenseDetail(studentNumber);
+}
+
+async function loadStudentOffenseDetail(studentNumber) {
+    const tbody = document.getElementById('tbody-student-detail');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Loading…</td></tr>`;
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_student_offenses.php?student_number=${encodeURIComponent(studentNumber)}`);
+        const data = await res.json();
+        if (!data.success || !data.offenses.length) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">No offense records found.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = data.offenses.map(o => `
+            <tr>
+                <td>${escHtml(o.offense_date)}</td>
+                <td>${escHtml(o.offense)}</td>
+                <td>${o.offense_level}</td>
+                <td>${escHtml(o.remarks || '—')}</td>
+            </tr>
+        `).join('');
+    } catch(err) {
+        console.error('loadStudentOffenseDetail:', err);
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#dc3545;padding:20px;">Failed to load.</td></tr>`;
+    }
+}
+    
+    function viewStudentGMRC(name, studentNumber, grade, section) {
     hideAllPages();
     document.getElementById('gmrcIndividualPage').classList.remove('hidden');
     document.getElementById('individualStudentName').textContent = name;
@@ -1559,12 +1594,28 @@ async function loadStudentOffenseRecords() {
     if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">Loading students…</td></tr>`;
     const students = await fetchStudents();
-    if (!students.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">No students found.</td></tr>`; return; }
+    if (!students.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">No students found.</td></tr>`;
+        return;
+    }
     tbody.innerHTML = students.map(s => {
-        const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
-        return `<tr><td>${escHtml(s.full_name_display)}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}',''); return false;">View</a></td></tr>`;
+        const gs      = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
+        const offense  = escHtml(s.latest_offense  || '—');
+        const level    = s.latest_level             || '—';
+        const date     = s.latest_date              || '—';
+        const reporter = escHtml(s.latest_reporter  || '—');
+        const remarks  = escHtml(s.latest_remarks   || '—');
+        return `<tr>
+            <td>${escHtml(s.full_name_display)}</td>
+            <td>${offense}</td>
+            <td>${level}</td>
+            <td>${date}</td>
+            <td>${reporter}</td>
+            <td>${remarks}</td>
+            <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','','${escJs(s.student_number)}'); return false;">View</a></td>
+        </tr>`;
     }).join('');
-    initPagination('student-records','tbody-student-records',10);
+    initPagination('student-records', 'tbody-student-records', 10);
 }
 
 function initStudentRecordSearch() {
@@ -1598,7 +1649,7 @@ function initStudentRecordSearch() {
 //  COUNSELING REFERRAL — student dropdown
 // ════════════════════════════════════════════════════════════
 async function loadCounselingStudentDropdown() {
-    const nameSelect    = document.getElementById('referralStudentSelect');
+    const nameSelect    = document.getElementById('referralStudentSelect');    
     const gradeSelect   = document.getElementById('referralGradeSelect');
     const sectionSelect = document.getElementById('referralSectionSelect');
     if (!nameSelect) return;
