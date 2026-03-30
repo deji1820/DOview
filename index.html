@@ -1702,35 +1702,58 @@ function renderReferralDropdown(query) {
         dd.innerHTML = `<div style="padding:10px 14px;color:#aaa;font-style:italic;font-size:14px;">No students found</div>`;
         return;
     }
-    dd.innerHTML = matches.map(s => `
-        <div style="padding:10px 14px;font-size:14px;color:var(--dark-navy);cursor:pointer;border-bottom:1px solid #f0f0f0;"
-             onmouseover="this.style.background='#f5f5f5'"
-             onmouseout="this.style.background=''"
-             onmousedown="selectReferralStudent('${escJs(s.student_number)}','${escJs(s.full_name_display)}','${escJs(s.grade_level||'')}','${escJs(s.section_name||'')}')">
-            <strong>${escHtml(s.full_name_display)}</strong>
-            <span style="color:#888;font-size:12px;margin-left:8px;">${escHtml(s.grade_level||'')} - ${escHtml(s.section_name||'')}</span>
-        </div>
-    `).join('');
-}
+    dd.innerHTML = matches.map(s => {
+        // store the full student data as JSON in a data attribute to avoid escaping bugs
+        const safeData = JSON.stringify({
+            student_number:    s.student_number    || '',
+            full_name_display: s.full_name_display || '',
+            grade_level:       s.grade_level       || '',
+            section_name:      s.section_name      || '',
+        }).replace(/'/g, '&#39;');
 
-async function selectReferralStudent(studentNumber, fullName, grade, section) {
-    document.getElementById('referralStudentInput').value  = fullName;
-    document.getElementById('referralStudentNumber').value = studentNumber;
+        return `
+            <div style="padding:10px 14px;font-size:14px;color:var(--dark-navy);cursor:pointer;border-bottom:1px solid #f0f0f0;"
+                 onmouseover="this.style.background='#f5f5f5'"
+                 onmouseout="this.style.background=''"
+                 onmousedown="selectReferralStudentFromEl(this)"
+                 data-student='${safeData}'>
+                <strong>${escHtml(s.full_name_display)}</strong>
+                <span style="color:#888;font-size:12px;margin-left:8px;">${escHtml(s.grade_level||'')} - ${escHtml(s.section_name||'')}</span>
+            </div>
+        `;
+    }).join('');
+}
+async function selectReferralStudentFromEl(el) {
+    let student;
+    try {
+        student = JSON.parse(el.dataset.student);
+    } catch(e) {
+        console.error('Failed to parse student data', e);
+        return;
+    }
+
+    const { student_number, full_name_display, grade_level, section_name } = student;
+
+    console.log('Selected student:', student); // remove after confirming it works
+
+    document.getElementById('referralStudentInput').value  = full_name_display;
+    document.getElementById('referralStudentNumber').value = student_number;
     document.getElementById('referralStudentDropdown').style.display = 'none';
 
-    // Auto-fill Grade and Section
+    // Auto-fill Grade
     const gradeEl = document.getElementById('referralGradeSelect');
-    if (gradeEl) gradeEl.value = grade || '—';
+    if (gradeEl) gradeEl.value = grade_level || '—';
 
+    // Auto-fill Section
     const sectionEl = document.getElementById('referralSectionSelect');
-    if (sectionEl) sectionEl.value = section || '—';
+    if (sectionEl) sectionEl.value = section_name || '—';
 
     // Auto-fill Offense Record
     const offenseEl = document.getElementById('referralOffenseRecord');
     if (offenseEl) {
         offenseEl.value = 'Loading…';
         try {
-            const res  = await apiFetch(`${API_BASE}/get_student_offenses.php?student_number=${encodeURIComponent(studentNumber)}`);
+            const res  = await apiFetch(`${API_BASE}/get_student_offenses.php?student_number=${encodeURIComponent(student_number)}`);
             const data = await res.json();
             if (data.success && data.offenses && data.offenses.length) {
                 offenseEl.value = data.offenses
@@ -1741,7 +1764,7 @@ async function selectReferralStudent(studentNumber, fullName, grade, section) {
                 offenseEl.value = 'No offense records found.';
             }
         } catch (err) {
-            console.error('selectReferralStudent:', err);
+            console.error('Offense fetch error:', err);
             offenseEl.value = 'Failed to load offense record.';
         }
     }
