@@ -1286,8 +1286,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="referral-form-row"><label class="referral-form-label">Date:</label><input type="date" class="referral-form-input" required></div>
                         <div class="referral-form-row">
     <label class="referral-form-label">Offense Record:</label>
-    <input type="text" class="referral-form-input" id="referralOffenseRecord"
-        placeholder="Auto-filled from student record" readonly style="background:#f0f0f0;">
+    <div style="display:flex;gap:10px;align-items:center;width:100%;">
+        <input type="text" class="referral-form-input" id="referralOffenseRecord"
+            placeholder="Select a student first…" readonly
+            style="background:#f0f0f0;cursor:not-allowed;flex:1;">
+        <button type="button" onclick="openOffenseRecordModal()"
+            style="padding:12px 20px;background:var(--dark-navy);color:var(--gold);border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+            View Full Record
+        </button>
+    </div>
 </div>
                         <div class="referral-form-row"><label class="referral-form-label">Remarks / Notes:</label><textarea class="referral-form-textarea" placeholder="Type your remarks / notes here"></textarea></div>
                         <div class="referral-form-actions"><button type="button" class="btn-print">Print</button><button type="submit" class="btn-send">Send</button></div>
@@ -1456,6 +1463,24 @@ document.addEventListener('DOMContentLoaded', () => {
             <h2 class="referral-sent-title">Referral Sent!</h2>
         </div>
     </div>
+
+<!-- ══ OFFENSE RECORD MODAL ════════════════════════════════ -->
+<div id="offenseRecordModal" class="av-modal-overlay hidden">
+    <div style="background:var(--white);border-radius:14px;width:92%;max-width:800px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,0.35);animation:modalFadeIn 0.3s ease-out;">
+        <div style="background:var(--dark-navy);padding:20px 30px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+            <div>
+                <div style="font-size:20px;font-weight:700;color:var(--gold);">Offense Record</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:3px;" id="offenseRecordModalSubtitle"></div>
+            </div>
+            <button onclick="closeOffenseRecordModal()" style="background:none;border:none;color:var(--gold);font-size:24px;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+        </div>
+        <div style="padding:30px;overflow-y:auto;flex:1;">
+            <div id="offenseRecordModalContent">
+                <div style="text-align:center;color:#aaa;padding:40px;">Select a student to view their offense record.</div>
+            </div>
+        </div>
+    </div>
+</div>
 
 </div><!-- end .dashboard -->
 
@@ -1749,24 +1774,61 @@ async function selectReferralStudentFromEl(el) {
     if (sectionEl) sectionEl.value = section_name || '—';
 
     // Auto-fill Offense Record
+    // Auto-fill Offense Record + populate modal
     const offenseEl = document.getElementById('referralOffenseRecord');
-    if (offenseEl) {
-        offenseEl.value = 'Loading…';
-        try {
-            const res  = await apiFetch(`${API_BASE}/get_student_offenses.php?student_number=${encodeURIComponent(student_number)}`);
-            const data = await res.json();
-            if (data.success && data.offenses && data.offenses.length) {
-                offenseEl.value = data.offenses
-                    .slice(0, 5)
-                    .map(o => `Lvl ${o.offense_level} - ${o.offense} (${o.offense_date})`)
-                    .join('; ');
-            } else {
-                offenseEl.value = 'No offense records found.';
+    const modalContent = document.getElementById('offenseRecordModalContent');
+    const modalSubtitle = document.getElementById('offenseRecordModalSubtitle');
+
+    if (offenseEl) offenseEl.value = 'Loading…';
+    if (modalSubtitle) modalSubtitle.textContent = full_name_display;
+    if (modalContent) modalContent.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">Loading offense records…</div>`;
+
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_student_offenses.php?student_number=${encodeURIComponent(student_number)}`);
+        const data = await res.json();
+
+        if (data.success && data.offenses && data.offenses.length) {
+            // Short summary for the text input
+            if (offenseEl) offenseEl.value = `${data.offenses.length} offense(s) on record — click View Full Record`;
+
+            // Full table for the modal
+            if (modalContent) {
+                modalContent.innerHTML = `
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:var(--dark-navy);">
+                                <th style="padding:12px 15px;text-align:left;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Date</th>
+                                <th style="padding:12px 15px;text-align:left;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Offense</th>
+                                <th style="padding:12px 15px;text-align:center;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Level</th>
+                                <th style="padding:12px 15px;text-align:left;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.offenses.map((o, i) => `
+                                <tr style="background:${i % 2 === 0 ? '#fff' : '#f9f9f9'};">
+                                    <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;">${escHtml(o.offense_date)}</td>
+                                    <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;">${escHtml(o.offense)}</td>
+                                    <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;text-align:center;">
+                                        <span style="background:var(--dark-navy);color:var(--gold);padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;">Level ${o.offense_level}</span>
+                                    </td>
+                                    <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;">${escHtml(o.remarks || '—')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div style="margin-top:15px;padding:10px 15px;background:var(--light-gray);border-radius:8px;font-size:13px;color:var(--gray);">
+                        Total: <strong style="color:var(--dark-navy);">${data.offenses.length} offense(s)</strong> on record
+                    </div>
+                `;
             }
-        } catch (err) {
-            console.error('Offense fetch error:', err);
-            offenseEl.value = 'Failed to load offense record.';
+        } else {
+            if (offenseEl) offenseEl.value = 'No offense records found.';
+            if (modalContent) modalContent.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No offense records found for this student.</div>`;
         }
+    } catch (err) {
+        console.error('Offense fetch error:', err);
+        if (offenseEl) offenseEl.value = 'Failed to load offense record.';
+        if (modalContent) modalContent.innerHTML = `<div style="text-align:center;color:#dc3545;padding:40px;">Failed to load offense records.</div>`;
     }
 }
 
@@ -1872,6 +1934,19 @@ function initGMRCFilters() {
         searchInput.addEventListener('input', applyGMRCFilters);
         searchInput._wired = true;
     }
+}
+
+function openOffenseRecordModal() {
+    const name = document.getElementById('referralStudentInput').value.trim();
+    if (!name) {
+        alert('Please select a student first.');
+        return;
+    }
+    document.getElementById('offenseRecordModal').classList.remove('hidden');
+}
+
+function closeOffenseRecordModal() {
+    document.getElementById('offenseRecordModal').classList.add('hidden');
 }
 
 function applyGMRCFilters() {
