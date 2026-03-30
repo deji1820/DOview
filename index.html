@@ -1633,7 +1633,15 @@ function initStudentRecordSearch() {
             if (!students.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">No results for "${escHtml(val)}".</td></tr>`; return; }
             tbody.innerHTML = students.map(s => {
                 const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
-                return `<tr><td>${escHtml(s.full_name_display)}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}',''); return false;">View</a></td></tr>`;
+                return `<tr>
+    <td>${escHtml(s.full_name_display)}</td>
+    <td>${escHtml(s.latest_offense  || '—')}</td>
+    <td>${s.latest_level            || '—'}</td>
+    <td>${s.latest_date             || '—'}</td>
+    <td>${escHtml(s.latest_reporter || '—')}</td>
+    <td>${escHtml(s.latest_remarks  || '—')}</td>
+    <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','','${escJs(s.student_number)}'); return false;">View</a></td>
+</tr>`;
             }).join('');
             initPagination('student-records','tbody-student-records',10);
         }, 400);
