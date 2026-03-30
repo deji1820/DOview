@@ -603,7 +603,8 @@
                             <textarea class="av-form-textarea" id="avRemarks" placeholder="Type your remarks here"></textarea>
                         </div>
                         <div class="av-form-actions">
-                            <button type="submit" class="av-submit-btn">Add</button>
+                            <button type="submit" class="av-submit-btn" id="avSubmitBtn">Add</button>
+
                         </div>
                     </form>
                 </div>
@@ -1172,7 +1173,6 @@ function showDashboard() { hideAllPages(); document.getElementById('dashboardHom
 function navigateToDisciplinaryMeasures() { hideAllPages(); document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','The HIMC Disciplinary Measures',''); }
 function navigateToEditDisciplinaryMeasures() { hideAllPages(); document.getElementById('editDisciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Edit Disciplinary Measures',''); }
 function backToDisciplinaryMeasures() { hideAllPages(); document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','The HIMC Disciplinary Measures',''); }
-function navigateToDailyReports() { hideAllPages(); document.getElementById('dailyReportsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📄','Daily Offense Reports',''); initPagination('daily-reports','tbody-daily-reports',10); }
 function navigateToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); loadStudentOffenseRecords(); initStudentRecordSearch(); initPagination('student-records','tbody-student-records',10); }
 function navigateToCounselingReferral() { hideAllPages(); document.getElementById('counselingReferralPage').classList.remove('hidden'); document.getElementById('newReferralForm').classList.add('hidden'); document.getElementById('referralHistory').style.display='block'; updateActiveNav(1); updateTopBar('📋','Counseling Referral',''); initPagination('referral-history','tbody-referral-history',10); }
 function navigateToDocumentSubmission() { hideAllPages(); document.getElementById('documentSubmissionPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Submission',''); initPagination('doc-submission','tbody-doc-submission',10); }
@@ -1412,8 +1412,7 @@ function disapproveDocument(btn) {
 // ════════════════════════════════════════════════════════════
 //  ADD VIOLATION MODAL
 // ════════════════════════════════════════════════════════════
-function showAddViolation() { document.getElementById('addViolationModal').classList.remove('hidden'); }
-function closeAddViolationModal() { document.getElementById('addViolationModal').classList.add('hidden'); document.getElementById('violationModalForm').reset(); document.getElementById('offenseOptions').innerHTML='<option value="">Select Offense</option>'; document.getElementById('av-student-name-display').textContent=''; }
+
 
 const offenseMap = {
     '1':['Tardiness','Unexpected absences','Wearing inappropriate attire','Failure to submit correspondence / have materials a 3rd time','Sleeping in class','Violation of SOPs','Misbehavior','Improper haircut','No ID or No gate pass','Loitering during class hours','Littering','Trespassing','Disruption of classes'],
@@ -1421,11 +1420,7 @@ const offenseMap = {
     '3':['Any form of disrespect or malicious act','Tampering of school document/property','Any form of dishonesty (forgery, identity theft)','Bringing of cigarettes, lighter or matches','Lending of IDs and gate pass','Cutting classes','Intentional/Unintentional inflicting of harm','Stealing or attempted theft','Bringing pornographic materials','Bringing of gambling materials','Assault or threat to a person in authority'],
     '4':['Any form of cheating','Any kind of bullying','Violation of the Data Privacy Act','Violation of the HIMC Child Protection Policy','Threatening/Harassment of any individual','Smoking cigarettes / vaping','Extortion','Exhibiting signs of under the influence of drugs or alcohol','Initiating fights or gambling','Backbiting or rumor mongering','Possession of deadly weapons']
 };
-function updateOffenseOptions(level) {
-    const sel=document.getElementById('offenseOptions');
-    sel.innerHTML='<option value="">Select Offense</option>';
-    (offenseMap[level]||[]).forEach(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;sel.appendChild(opt);});
-}
+
 document.addEventListener('DOMContentLoaded',()=>{
     const form=document.getElementById('violationModalForm');
     if(form) form.addEventListener('submit',function(e){ e.preventDefault(); closeAddViolationModal(); document.getElementById('successModal').classList.remove('hidden'); this.reset(); });
@@ -1497,7 +1492,6 @@ function changeRowsPerPage(sel,tableId){const state=paginationState[tableId];if(
 //  DATE UTILS
 // ════════════════════════════════════════════════════════════
 function setMaxDates(){ const today=new Date().toISOString().split('T')[0]; document.querySelectorAll('input[type="date"]').forEach(i=>i.setAttribute('max',today)); }
-function updateReportDate(val){ if(!val)return; const d=new Date(val+'T00:00:00'); document.querySelector('.date-display').textContent=d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}); }
 
 // ════════════════════════════════════════════════════════════
 //  QUARTER SUMMARIES
@@ -1527,6 +1521,331 @@ function initializeCharts(){
     const c2=document.getElementById('gradeLevelChart');       if(c2&&!c2._done){new Chart(c2.getContext('2d'),cfg(['Grade 11','Grade 10','Grade 12','Grade 7'],[39,10,12,18]));c2._done=true;}
     const c3=document.getElementById('offenseLevelChart');     if(c3&&!c3._done){new Chart(c3.getContext('2d'),cfg(['Level 1','Level 2','Level 3','Level 4'],[100,22,10,68]));c3._done=true;}
 }
+// ════════════════════════════════════════════════════════════
+//  ADD VIOLATION — FULL INTEGRATION
+//  Paste this entire block inside your dashboard.html <script>
+//  It replaces these existing functions:
+//    showAddViolation(), closeAddViolationModal(),
+//    updateOffenseOptions(), submitViolation(),
+//    navigateToDailyReports(), updateReportDate()
+// ════════════════════════════════════════════════════════════
+
+// ── State: offense types loaded from DB per level ─────────
+let offenseTypesByLevel = {};   // { 1: [{offense_type_id, title}, ...], 2: [...] }
+let offenseTypesLoaded  = false;
+
+// ── Load offense types from DB (called once) ──────────────
+async function loadOffenseTypes() {
+    if (offenseTypesLoaded) return;
+    try {
+        const res  = await fetch(`${API_BASE}/get_offense_types.php`);
+        const data = await res.json();
+        if (data.success) {
+            offenseTypesByLevel = data.by_level || {};
+            offenseTypesLoaded  = true;
+        }
+    } catch (err) {
+        console.error('loadOffenseTypes:', err);
+    }
+}
+
+// ── Update Offense dropdown when level changes ────────────
+function updateOffenseOptions(level) {
+    const sel = document.getElementById('offenseOptions');
+    sel.innerHTML = '<option value="">Select Offense</option>';
+    if (!level) return;
+
+    const types = offenseTypesByLevel[level] || [];
+    if (!types.length) {
+        // Fallback to hardcoded if DB not loaded yet
+        const hardcoded = {
+            '1':['Tardiness','Unexpected absences','Wearing inappropriate attire','Failure to submit correspondence / have materials a 3rd time','Sleeping in class','Violation of SOPs','Misbehavior','Improper haircut','No ID or No gate pass','Loitering during class hours','Littering','Trespassing','Disruption of classes'],
+            '2':['Any disruptive behavior/audio/video/material','Using vulgar language or indecent publication','Bringing of electronic gadgets','Staying in the school premises after school hours','Putting temporary marks on their bodies','Putting on make-up or colored nail polish','Fancy haircut or loud hair color','Holding unauthorized meetings/rallies/demonstrations','Vandalism'],
+            '3':['Any form of disrespect or malicious act','Tampering of school document/property','Any form of dishonesty (forgery, identity theft)','Bringing of cigarettes, lighter or matches','Lending of IDs and gate pass','Cutting classes','Intentional/Unintentional inflicting of harm','Stealing or attempted theft','Bringing pornographic materials','Bringing of gambling materials','Assault or threat to a person in authority'],
+            '4':['Any form of cheating','Any kind of bullying','Violation of the Data Privacy Act','Violation of the HIMC Child Protection Policy','Threatening/Harassment of any individual','Smoking cigarettes / vaping','Extortion','Exhibiting signs of under the influence of drugs or alcohol','Initiating fights or gambling','Backbiting or rumor mongering','Possession of deadly weapons']
+        };
+        (hardcoded[level] || []).forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o; opt.textContent = o;
+            sel.appendChild(opt);
+        });
+        return;
+    }
+
+    // Use DB data — value = offense_type_id, text = title
+    types.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value       = t.offense_type_id;
+        opt.textContent = t.title;
+        opt.dataset.title = t.title;
+        sel.appendChild(opt);
+    });
+}
+
+// ── Open modal ────────────────────────────────────────────
+async function showAddViolation() {
+    document.getElementById('addViolationModal').classList.remove('hidden');
+    // Set today as default date
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('avOffenseDate');
+    if (dateInput && !dateInput.value) dateInput.value = today;
+
+    // Load data in parallel
+    await Promise.all([loadOffenseTypes(), loadReporterDropdown()]);
+}
+
+// ── Close modal ───────────────────────────────────────────
+function closeAddViolationModal() {
+    document.getElementById('addViolationModal').classList.add('hidden');
+    document.getElementById('violationModalForm').reset();
+    document.getElementById('offenseOptions').innerHTML = '<option value="">Select Offense</option>';
+    document.getElementById('av-student-name-display').textContent = '';
+    const errEl = document.getElementById('av-form-error');
+    if (errEl) errEl.textContent = '';
+}
+
+// ── Load teachers into Reported By dropdown ───────────────
+async function loadReporterDropdown() {
+    const sel = document.getElementById('avReporter');
+    if (!sel) return;
+    if (sel.options.length > 1) return; // already loaded
+
+    sel.innerHTML = '<option value="">Loading teachers…</option>';
+    try {
+        const res  = await fetch(`${API_BASE}/get_teachers.php`);
+        const data = await res.json();
+        sel.innerHTML = '<option value="">Select Reporter</option>';
+        if (data.success && data.teachers.length) {
+            data.teachers.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value       = t.teacher_id;
+                opt.textContent = t.full_name;
+                sel.appendChild(opt);
+            });
+        } else {
+            sel.innerHTML = '<option value="">No teachers found in DB</option>';
+        }
+    } catch (err) {
+        console.error('loadReporterDropdown:', err);
+        sel.innerHTML = '<option value="">Could not load teachers</option>';
+    }
+}
+
+// ── Form submit ───────────────────────────────────────────
+async function submitViolation(e) {
+    e.preventDefault();
+
+    const errEl     = document.getElementById('av-form-error');
+    const submitBtn = document.getElementById('avSubmitBtn');
+    if (errEl) errEl.textContent = '';
+
+    // Gather values
+    const studentNumber = document.getElementById('avStudentId').value.trim();
+    const levelValue    = document.getElementById('avOffenseLevel').value;
+    const offenseSel    = document.getElementById('offenseOptions');
+    const offenseTypeId = offenseSel.value;           // numeric ID from DB
+    const offenseTitle  = offenseSel.options[offenseSel.selectedIndex]?.dataset?.title
+                          || offenseSel.options[offenseSel.selectedIndex]?.textContent
+                          || '';
+    const dateOfOffense = document.getElementById('avOffenseDate').value;
+    const reporterSel   = document.getElementById('avReporter');
+    const teacherId     = reporterSel.value;
+    const description   = document.getElementById('avRemarks').value.trim();
+
+    // Client validation
+    if (!studentNumber || !levelValue || !offenseTypeId || !dateOfOffense || !teacherId) {
+        if (errEl) errEl.textContent = 'Please fill in all required fields.';
+        return;
+    }
+
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
+
+    try {
+        const res = await fetch(`${API_BASE}/add_violation.php`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_number:  studentNumber,
+                offense_type_id: parseInt(offenseTypeId),
+                offense_level:   parseInt(levelValue),
+                date_of_offense: dateOfOffense,
+                teacher_id:      parseInt(teacherId),
+                description,
+            }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            closeAddViolationModal();
+
+            // Show success modal with sanction info
+            showSuccessModal(data);
+
+            // Prepend new row to Daily Reports table immediately
+            prependToDailyReports(data, reporterSel.options[reporterSel.selectedIndex]?.textContent || '');
+
+        } else {
+            if (errEl) errEl.textContent = data.message || 'Failed to save violation.';
+        }
+
+    } catch (err) {
+        console.error('submitViolation:', err);
+        if (errEl) errEl.textContent = 'Network error. Please try again.';
+    } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Add'; }
+    }
+}
+
+// ── Show success modal with sanction info ─────────────────
+function showSuccessModal(data) {
+    const modal = document.getElementById('successModal');
+    if (!modal) return;
+
+    // Update modal content to show sanction
+    const title = modal.querySelector('.success-title');
+    if (title) title.textContent = 'Violation Added!';
+
+    // Add sanction info below title if element exists
+    let sanctionEl = document.getElementById('successSanction');
+    if (!sanctionEl) {
+        sanctionEl = document.createElement('p');
+        sanctionEl.id = 'successSanction';
+        sanctionEl.style.cssText = 'font-size:15px;color:#2d2550;margin-bottom:20px;line-height:1.5;';
+        if (title) title.after(sanctionEl);
+    }
+    sanctionEl.innerHTML = `
+        <strong>${escHtml(data.student_name)}</strong><br>
+        Offense #${data.occurrence} · Level ${data.level}<br>
+        Sanction: <strong>${escHtml(data.sanction)}</strong><br>
+        Demerits: <strong>${data.demerits}</strong>
+    `;
+
+    modal.classList.remove('hidden');
+
+    // Auto-close after 4 seconds
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        if (sanctionEl) sanctionEl.textContent = '';
+    }, 4000);
+}
+
+// ── Prepend new row to Daily Reports table ────────────────
+function prependToDailyReports(data, reporterName) {
+    const tbody = document.getElementById('tbody-daily-reports');
+    if (!tbody) return;
+
+    // Remove "no data" placeholder if present
+    const placeholder = tbody.querySelector('td[colspan]');
+    if (placeholder) placeholder.closest('tr').remove();
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td>${escHtml(data.offense_report_id?.toString() || '')}</td>
+        <td>${escHtml(data.student_name)}</td>
+        <td>${escHtml(data.offense)}</td>
+        <td>${data.level}</td>
+        <td>${escHtml(reporterName)}</td>
+        <td>N/A</td>
+        <td>${escHtml(data.demerits + ' demerit' + (data.demerits > 1 ? 's' : '') + ' · ' + data.sanction)}</td>
+        <td>
+            <a class="action-link" href="#">Edit</a> /
+            <a class="action-link" href="#" style="color:#dc3545;">Delete</a>
+        </td>
+    `;
+    tbody.prepend(tr);
+
+    // Re-init pagination to include new row
+    initPagination('daily-reports', 'tbody-daily-reports', 10);
+}
+
+// ── Load Daily Reports from DB ────────────────────────────
+async function loadDailyReports(dateStr) {
+    const tbody = document.getElementById('tbody-daily-reports');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr>`;
+
+    const params = dateStr ? `?date=${dateStr}` : '';
+    try {
+        const res  = await fetch(`${API_BASE}/get_violations.php${params}`);
+        const data = await res.json();
+
+        if (!data.success || !data.violations.length) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#aaa;padding:30px;">No violations recorded${dateStr ? ' for this date' : ''}.</td></tr>`;
+            initPagination('daily-reports', 'tbody-daily-reports', 10);
+            return;
+        }
+
+        tbody.innerHTML = data.violations.map(v => `
+            <tr>
+                <td>${escHtml(v.student_number)}</td>
+                <td>${escHtml(v.student_name)}</td>
+                <td>${escHtml(v.offense || '—')}</td>
+                <td>${v.offense_level || '—'}</td>
+                <td>${escHtml(v.reporter_name || '—')}</td>
+                <td>${v.evidence_links ? `<span class="evidence-link">${escHtml(v.evidence_links)}</span>` : 'N/A'}</td>
+                <td>${escHtml(v.remarks || 'N/A')}</td>
+                <td>
+                    <a class="action-link" href="#">Edit</a> /
+                    <a class="action-link" href="#" style="color:#dc3545;">Delete</a>
+                </td>
+            </tr>
+        `).join('');
+
+        initPagination('daily-reports', 'tbody-daily-reports', 10);
+
+    } catch (err) {
+        console.error('loadDailyReports:', err);
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#dc3545;padding:30px;">Failed to load violations.</td></tr>`;
+    }
+}
+
+// ── Update date display and reload table ──────────────────
+function updateReportDate(value) {
+    if (!value) return;
+    const d = new Date(value + 'T00:00:00');
+    document.querySelector('.date-display').textContent =
+        d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    loadDailyReports(value);
+}
+
+// ── Override navigateToDailyReports to load live data ─────
+function navigateToDailyReports() {
+    hideAllPages();
+    document.getElementById('dailyReportsPage').classList.remove('hidden');
+    updateActiveNav(1);
+    updateTopBar('📄', 'Daily Offense Reports', '');
+
+    // Load today's violations by default
+    const picker = document.getElementById('reportDatePicker');
+    const today  = new Date().toISOString().split('T')[0];
+    if (picker) {
+        picker.value = today;
+        updateReportDate(today);
+    } else {
+        loadDailyReports('');
+    }
+}
+
+// ── Wire form submit on DOMContentLoaded ──────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('violationModalForm');
+    if (form) form.addEventListener('submit', submitViolation);
+
+    // Add error display element to modal if not already there
+    const formSection = document.querySelector('.av-form-section');
+    if (formSection && !document.getElementById('av-form-error')) {
+        const errDiv = document.createElement('div');
+        errDiv.id    = 'av-form-error';
+        errDiv.style.cssText = 'color:#dc3545;font-size:13px;margin-top:8px;text-align:center;min-height:16px;';
+        const actions = formSection.querySelector('.av-form-actions');
+        if (actions) actions.before(errDiv);
+    }
+
+    // Pre-load offense types in background
+    loadOffenseTypes();
+});
 </script>
 </body>
 </html>
