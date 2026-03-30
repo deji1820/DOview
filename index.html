@@ -1640,7 +1640,7 @@ function initStudentRecordSearch() {
     <td>${s.latest_date             || '—'}</td>
     <td>${escHtml(s.latest_reporter || '—')}</td>
     <td>${escHtml(s.latest_remarks  || '—')}</td>
-    <td><a class="action-link" href="#" onclick="onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
+    <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
 </tr>`;
             }).join('');
             initPagination('student-records','tbody-student-records',10);
