@@ -1816,16 +1816,26 @@ function sorPopulateOffenseFilter(level) {
 }
 function sorLevelChanged() { sorPopulateOffenseFilter(document.getElementById('sorLevelFilter').value); applyStudentRecordFilters(); }
 function applyStudentRecordFilters() {
-    const search  = (document.getElementById('sorSearchInput').value||'').toLowerCase();
+    const search  = (document.getElementById('sorSearchInput').value || '').toLowerCase();
     const level   = document.getElementById('sorLevelFilter').value;
     const offense = document.getElementById('sorOffenseFilter').value;
+
+    // First unhide all rows so we filter from full set
     Array.from(document.querySelectorAll('#tbody-student-records tr')).forEach(row => {
-        const name   = row.cells[0]?row.cells[0].textContent.toLowerCase():'';
-        const rOff   = row.cells[1]?row.cells[1].textContent.trim():'';
-        const rLevel = row.cells[2]?row.cells[2].textContent.trim():'';
-        row.style.display = ((!search||name.includes(search))&&(!level||rLevel===level)&&(!offense||rOff===offense)) ? '' : 'none';
+        const name   = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
+        const rOff   = row.cells[1] ? row.cells[1].textContent.trim() : '';
+        const rLevel = row.cells[2] ? row.cells[2].textContent.trim() : '';
+        const show   = (!search  || name.includes(search))
+                    && (!level   || rLevel === level)
+                    && (!offense || rOff   === offense);
+        row.style.display = show ? '' : 'none';
     });
-    initPagination('student-records','tbody-student-records',10);
+
+    // Reset to page 1 so pagination recounts from scratch
+    if (paginationState['student-records']) {
+        paginationState['student-records'].currentPage = 1;
+    }
+    renderPagination('student-records');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1986,8 +1996,8 @@ function changeRowsPerPage(sel, tableId) {
     state.rowsPerPage = parseInt(sel.value);
     state.currentPage = 1;
     renderPagination(tableId);
-}function goToPage(tableId,page){const state=paginationState[tableId];if(!state)return;const tbody=document.getElementById(state.tbodyId);const total=tbody?tbody.querySelectorAll('tr').length:0;const tp=Math.max(1,Math.ceil(total/state.rowsPerPage));state.currentPage=Math.max(1,Math.min(page,tp));renderPagination(tableId);}
-function changeRowsPerPage(sel,tableId){const state=paginationState[tableId];if(!state)return;state.rowsPerPage=parseInt(sel.value);state.currentPage=1;renderPagination(tableId);}
+}
+
 
 // ════════════════════════════════════════════════════════════
 //  DATE UTILS
