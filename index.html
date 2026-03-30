@@ -280,85 +280,79 @@ function viewDailyReports() {
 // ════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
     const rf = document.getElementById('referralForm');
-    if (rf) rf.addEventListener('submit', function(e) {
-       const rf = document.getElementById('referralForm');
-if (rf) rf.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const sendBtn = this.querySelector('.btn-send');
-    sendBtn.disabled = true;
-    sendBtn.textContent = 'Sending…';
+    if (rf) rf.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const sendBtn = this.querySelector('.btn-send');
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending…';
 
-    const studentNumber = document.getElementById('referralStudentNumber').value;
-    const studentName   = document.getElementById('referralStudentInput').value.trim();
-    const grade         = document.getElementById('referralGradeSelect').value;
-    const section       = document.getElementById('referralSectionSelect').value;
-    const dateSent      = this.querySelector('input[type="date"]').value;
-    const remarks       = this.querySelector('textarea').value.trim();
-    const offenseRecord = document.getElementById('referralOffenseRecord').value;
+        const studentNumber = document.getElementById('referralStudentNumber').value;
+        const grade         = document.getElementById('referralGradeSelect').value;
+        const section       = document.getElementById('referralSectionSelect').value;
+        const dateSent      = this.querySelector('input[type="date"]').value;
+        const remarks       = this.querySelector('textarea').value.trim();
+        const offenseRecord = document.getElementById('referralOffenseRecord').value;
 
-    console.log('Submitting referral:', { studentNumber, dateSent, remarks });
+        console.log('Submitting referral:', { studentNumber, dateSent, remarks });
 
-    if (!studentNumber) {
-        alert('Please select a student from the list.');
-        sendBtn.disabled = false; sendBtn.textContent = 'Send'; return;
-    }
-
-    try {
-        const res  = await apiFetch(`${API_BASE}/add_referral.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                student_number: studentNumber,
-                date_sent:      dateSent,
-                remarks:        remarks,
-                offense_record: offenseRecord
-            })
-        });
-        const data = await res.json();
-        console.log('add_referral response:', data);
-
-        if (data.success) {
-            document.getElementById('referralSentModal').classList.remove('hidden');
-            setTimeout(() => {
-                document.getElementById('referralSentModal').classList.add('hidden');
-                document.getElementById('newReferralForm').classList.add('hidden');
-                document.getElementById('referralHistory').style.display = 'block';
-            }, 2000);
-
-            prependToReferralHistory({
-                name:      data.student_name,
-                grade:     data.grade,
-                section:   data.section,
-                remarks:   data.remarks,
-                date_sent: data.date_sent,
-            });
-
-            this.reset();
-            document.getElementById('referralGradeSelect').value   = '';
-            document.getElementById('referralSectionSelect').value = '';
-            document.getElementById('referralOffenseRecord').value = '';
-            document.getElementById('referralStudentNumber').value = '';
-            document.getElementById('offenseRecordModalContent').innerHTML = '<div style="text-align:center;color:#aaa;padding:40px;">Select a student to view their offense record.</div>';
-        } else {
-            alert(data.message || 'Failed to send referral.');
+        if (!studentNumber) {
+            alert('Please select a student from the list.');
+            sendBtn.disabled = false; sendBtn.textContent = 'Send'; return;
         }
-    } catch (err) {
-        console.error('submitReferral error:', err);
-        alert('Network error. Please try again.');
-    } finally {
-        sendBtn.disabled = false;
-        sendBtn.textContent = 'Send';
-    }
-});
-    const rfi = document.getElementById('referralFileInput');
-    if (rfi) rfi.addEventListener('change', function(){ if(this.files&&this.files[0]) document.getElementById('referralFileNameDisplay').textContent=this.files[0].name; });
+
+        try {
+            const res  = await apiFetch(`${API_BASE}/add_referral.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_number: studentNumber,
+                    date_sent:      dateSent,
+                    remarks:        remarks,
+                    offense_record: offenseRecord
+                })
+            });
+            const data = await res.json();
+            console.log('add_referral response:', data);
+
+            if (data.success) {
+                document.getElementById('referralSentModal').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('referralSentModal').classList.add('hidden');
+                    document.getElementById('newReferralForm').classList.add('hidden');
+                    document.getElementById('referralHistory').style.display = 'block';
+                }, 2000);
+
+                prependToReferralHistory({
+                    name:      data.student_name,
+                    grade:     data.grade,
+                    section:   data.section,
+                    remarks:   data.remarks,
+                    date_sent: data.date_sent,
+                });
+
+                this.reset();
+                document.getElementById('referralGradeSelect').value   = '';
+                document.getElementById('referralSectionSelect').value = '';
+                document.getElementById('referralOffenseRecord').value = '';
+                document.getElementById('referralStudentNumber').value = '';
+                document.getElementById('offenseRecordModalContent').innerHTML = '<div style="text-align:center;color:#aaa;padding:40px;">Select a student to view their offense record.</div>';
+            } else {
+                alert(data.message || 'Failed to send referral.');
+            }
+        } catch (err) {
+            console.error('submitReferral error:', err);
+            alert('Network error. Please try again.');
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send';
+        }
+    });
 
     setMaxDates();
     showDashboard();
     loadTeachers();
     loadOffenseTypes();
 });
-
 </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
