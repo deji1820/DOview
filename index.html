@@ -1820,7 +1820,6 @@ function applyStudentRecordFilters() {
     const level   = document.getElementById('sorLevelFilter').value;
     const offense = document.getElementById('sorOffenseFilter').value;
 
-    // First unhide all rows so we filter from full set
     Array.from(document.querySelectorAll('#tbody-student-records tr')).forEach(row => {
         const name   = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
         const rOff   = row.cells[1] ? row.cells[1].textContent.trim() : '';
@@ -1828,10 +1827,9 @@ function applyStudentRecordFilters() {
         const show   = (!search  || name.includes(search))
                     && (!level   || rLevel === level)
                     && (!offense || rOff   === offense);
-        row.style.display = show ? '' : 'none';
+        row.dataset.filtered = show ? 'false' : 'true';
     });
 
-    // Reset to page 1 so pagination recounts from scratch
     if (paginationState['student-records']) {
         paginationState['student-records'].currentPage = 1;
     }
@@ -1923,8 +1921,16 @@ function saveGMRCRemarks() { alert('Remarks saved successfully!'); }
 // ════════════════════════════════════════════════════════════
 //  PAGINATION
 // ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  PAGINATION
+// ════════════════════════════════════════════════════════════
 const paginationState = {};
+
 function initPagination(tableId, tbodyId, rowsPerPage) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    // Unhide all rows before initializing so we get the full count
+    Array.from(tbody.querySelectorAll('tr')).forEach(r => r.style.display = '');
     paginationState[tableId] = { tbodyId, rowsPerPage, currentPage: 1 };
     renderPagination(tableId);
 }
@@ -1936,25 +1942,26 @@ function renderPagination(tableId) {
     const tbody = document.getElementById(state.tbodyId);
     if (!tbody) return;
 
-    // Get only rows that are not filtered out (display !== 'none')
-    const allRows     = Array.from(tbody.querySelectorAll('tr'));
-    const visibleRows = allRows.filter(r => r.style.display !== 'none');
-    const total       = visibleRows.length;
-    const totalPages  = Math.max(1, Math.ceil(total / state.rowsPerPage));
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
 
-    // Clamp current page
+    // "Eligible" rows = rows not hidden by a FILTER (we mark filter-hidden with data-filtered)
+    // We use a data attribute to distinguish filter-hidden from pagination-hidden
+    const eligibleRows = allRows.filter(r => r.dataset.filtered !== 'true');
+    const total        = eligibleRows.length;
+    const totalPages   = Math.max(1, Math.ceil(total / state.rowsPerPage));
+
     if (state.currentPage > totalPages) state.currentPage = totalPages;
 
     const start = (state.currentPage - 1) * state.rowsPerPage;
     const end   = start + state.rowsPerPage;
 
-    // Hide ALL rows first, then show only the current page slice
-    allRows.forEach(r => r.style.display = 'none');
-    visibleRows.forEach((r, i) => {
-        if (i >= start && i < end) r.style.display = '';
+    // Hide all eligible rows first, then show only the current page slice
+    eligibleRows.forEach((r, i) => {
+        r.style.display = (i >= start && i < end) ? '' : 'none';
     });
+    // Keep filter-hidden rows hidden
+    allRows.filter(r => r.dataset.filtered === 'true').forEach(r => r.style.display = 'none');
 
-    // Info label
     const info = document.getElementById(`${tableId}-info`);
     if (info) {
         const from = total === 0 ? 0 : start + 1;
@@ -1962,7 +1969,6 @@ function renderPagination(tableId) {
         info.textContent = `Showing ${from}–${to} of ${total}`;
     }
 
-    // Page buttons
     const ctrl = document.getElementById(`${tableId}-controls`);
     if (!ctrl) return;
 
@@ -1981,12 +1987,10 @@ function renderPagination(tableId) {
 function goToPage(tableId, page) {
     const state = paginationState[tableId];
     if (!state) return;
-
-    const tbody       = document.getElementById(state.tbodyId);
-    const visibleRows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none');
-    const totalPages  = Math.max(1, Math.ceil(visibleRows.length / state.rowsPerPage));
-
-    state.currentPage = Math.max(1, Math.min(page, totalPages));
+    const tbody        = document.getElementById(state.tbodyId);
+    const eligibleRows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.dataset.filtered !== 'true');
+    const totalPages   = Math.max(1, Math.ceil(eligibleRows.length / state.rowsPerPage));
+    state.currentPage  = Math.max(1, Math.min(page, totalPages));
     renderPagination(tableId);
 }
 
