@@ -1914,27 +1914,79 @@ function saveGMRCRemarks() { alert('Remarks saved successfully!'); }
 //  PAGINATION
 // ════════════════════════════════════════════════════════════
 const paginationState = {};
-function initPagination(tableId, tbodyId, rowsPerPage) { paginationState[tableId]={tbodyId,rowsPerPage,currentPage:1}; renderPagination(tableId); }
-function renderPagination(tableId) {
-    const state=paginationState[tableId]; if(!state) return;
-    const tbody=document.getElementById(state.tbodyId); if(!tbody) return;
-    const rows=Array.from(tbody.querySelectorAll('tr:not([style*="display: none"])')).concat(Array.from(tbody.querySelectorAll('tr[style*="display: none"]')));
-    const allRows=Array.from(tbody.querySelectorAll('tr'));
-    const visibleRows=allRows.filter(r=>r.style.display!=='none');
-    const total=visibleRows.length;
-    const totalPages=Math.max(1,Math.ceil(total/state.rowsPerPage));
-    state.currentPage=Math.min(state.currentPage,totalPages);
-    const start=(state.currentPage-1)*state.rowsPerPage; const end=start+state.rowsPerPage;
-    let vi=0; allRows.forEach(row=>{ if(row.style.display==='none') return; row.style.display=(vi>=start&&vi<end)?'':'none'; vi++; });
-    const info=document.getElementById(`${tableId}-info`); if(info){const from=total===0?0:start+1;const to=Math.min(end,total);info.textContent=`Showing ${from}–${to} of ${total}`;}
-    const ctrl=document.getElementById(`${tableId}-controls`); if(!ctrl) return;
-    let sp=Math.max(1,state.currentPage-2); let ep=Math.min(totalPages,sp+4); if(ep-sp<4) sp=Math.max(1,ep-4);
-    let html=`<button class="page-btn" onclick="goToPage('${tableId}',${state.currentPage-1})" ${state.currentPage===1?'disabled':''}>&#8249;</button>`;
-    for(let i=sp;i<=ep;i++) html+=`<button class="page-btn ${i===state.currentPage?'active':''}" onclick="goToPage('${tableId}',${i})">${i}</button>`;
-    html+=`<button class="page-btn" onclick="goToPage('${tableId}',${state.currentPage+1})" ${state.currentPage===totalPages?'disabled':''}>&#8250;</button>`;
-    ctrl.innerHTML=html;
+function initPagination(tableId, tbodyId, rowsPerPage) {
+    paginationState[tableId] = { tbodyId, rowsPerPage, currentPage: 1 };
+    renderPagination(tableId);
 }
-function goToPage(tableId,page){const state=paginationState[tableId];if(!state)return;const tbody=document.getElementById(state.tbodyId);const total=tbody?tbody.querySelectorAll('tr').length:0;const tp=Math.max(1,Math.ceil(total/state.rowsPerPage));state.currentPage=Math.max(1,Math.min(page,tp));renderPagination(tableId);}
+
+function renderPagination(tableId) {
+    const state = paginationState[tableId];
+    if (!state) return;
+
+    const tbody = document.getElementById(state.tbodyId);
+    if (!tbody) return;
+
+    // Get only rows that are not filtered out (display !== 'none')
+    const allRows     = Array.from(tbody.querySelectorAll('tr'));
+    const visibleRows = allRows.filter(r => r.style.display !== 'none');
+    const total       = visibleRows.length;
+    const totalPages  = Math.max(1, Math.ceil(total / state.rowsPerPage));
+
+    // Clamp current page
+    if (state.currentPage > totalPages) state.currentPage = totalPages;
+
+    const start = (state.currentPage - 1) * state.rowsPerPage;
+    const end   = start + state.rowsPerPage;
+
+    // Hide ALL rows first, then show only the current page slice
+    allRows.forEach(r => r.style.display = 'none');
+    visibleRows.forEach((r, i) => {
+        if (i >= start && i < end) r.style.display = '';
+    });
+
+    // Info label
+    const info = document.getElementById(`${tableId}-info`);
+    if (info) {
+        const from = total === 0 ? 0 : start + 1;
+        const to   = Math.min(end, total);
+        info.textContent = `Showing ${from}–${to} of ${total}`;
+    }
+
+    // Page buttons
+    const ctrl = document.getElementById(`${tableId}-controls`);
+    if (!ctrl) return;
+
+    let sp = Math.max(1, state.currentPage - 2);
+    let ep = Math.min(totalPages, sp + 4);
+    if (ep - sp < 4) sp = Math.max(1, ep - 4);
+
+    let html = `<button class="page-btn" onclick="goToPage('${tableId}', ${state.currentPage - 1})" ${state.currentPage === 1 ? 'disabled' : ''}>&#8249;</button>`;
+    for (let i = sp; i <= ep; i++) {
+        html += `<button class="page-btn ${i === state.currentPage ? 'active' : ''}" onclick="goToPage('${tableId}', ${i})">${i}</button>`;
+    }
+    html += `<button class="page-btn" onclick="goToPage('${tableId}', ${state.currentPage + 1})" ${state.currentPage === totalPages ? 'disabled' : ''}>&#8250;</button>`;
+    ctrl.innerHTML = html;
+}
+
+function goToPage(tableId, page) {
+    const state = paginationState[tableId];
+    if (!state) return;
+
+    const tbody       = document.getElementById(state.tbodyId);
+    const visibleRows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none');
+    const totalPages  = Math.max(1, Math.ceil(visibleRows.length / state.rowsPerPage));
+
+    state.currentPage = Math.max(1, Math.min(page, totalPages));
+    renderPagination(tableId);
+}
+
+function changeRowsPerPage(sel, tableId) {
+    const state = paginationState[tableId];
+    if (!state) return;
+    state.rowsPerPage = parseInt(sel.value);
+    state.currentPage = 1;
+    renderPagination(tableId);
+}function goToPage(tableId,page){const state=paginationState[tableId];if(!state)return;const tbody=document.getElementById(state.tbodyId);const total=tbody?tbody.querySelectorAll('tr').length:0;const tp=Math.max(1,Math.ceil(total/state.rowsPerPage));state.currentPage=Math.max(1,Math.min(page,tp));renderPagination(tableId);}
 function changeRowsPerPage(sel,tableId){const state=paginationState[tableId];if(!state)return;state.rowsPerPage=parseInt(sel.value);state.currentPage=1;renderPagination(tableId);}
 
 // ════════════════════════════════════════════════════════════
