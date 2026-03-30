@@ -1714,11 +1714,7 @@ function showAddViolation() { document.getElementById('addViolationModal').class
 function closeAddViolationModal() { document.getElementById('addViolationModal').classList.add('hidden'); document.getElementById('violationModalForm').reset(); document.getElementById('offenseOptions').innerHTML='<option value="">Select Offense</option>'; document.getElementById('av-student-name-display').textContent=''; }
 
 // offenseMap removed — using DB data via offenseTypesByLevel
-function updateOffenseOptions(level) {
-    const sel=document.getElementById('offenseOptions');
-    sel.innerHTML='<option value="">Select Offense</option>';
-    (offenseMap[level]||[]).forEach(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;sel.appendChild(opt);});
-}
+
 function viewOffenseManagement() { document.getElementById('successModal').classList.add('hidden'); navigateToDailyReports(); }
 
 // ════════════════════════════════════════════════════════════
