@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const studentNumber = document.getElementById('referralStudentNumber').value;
         const grade         = document.getElementById('referralGradeSelect').value;
         const section       = document.getElementById('referralSectionSelect').value;
-        const dateSent      = this.querySelector('input[type="date"]').value;
+        const dateSent = document.getElementById('referralDate').value;
         const remarks       = this.querySelector('textarea').value.trim();
         const offenseRecord = document.getElementById('referralOffenseRecord').value;
 
@@ -1341,7 +1341,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
                         <div class="referral-form-row"><label class="referral-form-label">Grade:</label><input type="text" class="referral-form-input" id="referralGradeSelect" placeholder="Auto-filled from student" readonly style="background:#f0f0f0;cursor:not-allowed;"></div>
                         <div class="referral-form-row"><label class="referral-form-label">Section:</label><input type="text" class="referral-form-input" id="referralSectionSelect" placeholder="Auto-filled from student" readonly style="background:#f0f0f0;cursor:not-allowed;"></div>
-                        <div class="referral-form-row"><label class="referral-form-label">Date:</label><input type="date" class="referral-form-input" required></div>
+                        <div class="referral-form-row"><label class="referral-form-label">Date:</label><input type="date" class="referral-form-input" id="referralDate" readonly style="background:#f0f0f0;cursor:not-allowed;" required></div>
                         <div class="referral-form-row">
     <label class="referral-form-label">Offense Record:</label>
     <div style="display:flex;gap:10px;align-items:center;width:100%;">
@@ -1626,7 +1626,15 @@ function backToDocuments() { hideAllPages(); document.getElementById('documentsP
 function backToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); }
 function backToGMRC() { hideAllPages(); document.getElementById('gmrcPage').classList.remove('hidden'); updateActiveNav(3); updateTopBar('📖','GMRC Grade',''); }
 function handleCounselingBack() { const f=document.getElementById('newReferralForm'); if(!f.classList.contains('hidden')){ f.classList.add('hidden'); document.getElementById('referralHistory').style.display='block'; } else { backToOffenseManagement(); } }
-function showNewReferralForm() { document.getElementById('referralHistory').style.display='none'; document.getElementById('newReferralForm').classList.remove('hidden'); loadCounselingStudentDropdown(); }function navigateToStudentRecordsDetail(name, gradeSection, adviser, studentNumber) {
+function showNewReferralForm() { document.getElementById('referralHistory').style.display='none'; document.getElementById('newReferralForm').classList.remove('hidden'); loadCounselingStudentDropdown(); }function navigateToStudentRecordsDetail(name, gradeSection, adviser, studentNumber) {function showNewReferralForm() {
+    document.getElementById('referralHistory').style.display = 'none';
+    document.getElementById('newReferralForm').classList.remove('hidden');
+    loadCounselingStudentDropdown();
+
+    // ← Add this line:
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('referralDate').value = today;
+}
     hideAllPages();
     document.getElementById('studentRecordsDetailPage').classList.remove('hidden');
     document.getElementById('studentDetailName').textContent = name;
