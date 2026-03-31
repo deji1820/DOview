@@ -295,10 +295,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log('Submitting referral:', { studentNumber, dateSent, remarks });
 
-        if (!studentNumber) {
-            alert('Please select a student from the list.');
-            sendBtn.disabled = false; sendBtn.textContent = 'Send'; return;
-        }
+        const lb = document.getElementById('referral-student-lookup-box');
+if (!studentNumber || !lb.innerHTML.includes('✓')) {
+    alert('Please enter a valid Student ID.');
+    sendBtn.disabled = false; sendBtn.textContent = 'Send'; return;
+}
 
         try {
             const res  = await apiFetch(`${API_BASE}/add_referral.php`, {
@@ -1329,14 +1330,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2 class="form-title">New Referral</h2>
                     <form id="referralForm">
                         <div class="referral-form-row">
-    <label class="referral-form-label">Name:</label>
-    <div style="position:relative;width:100%;">
-        <input type="text" class="referral-form-input" id="referralStudentInput"
-            placeholder="Search student name…" autocomplete="off"
-            oninput="filterReferralStudents(this.value)"
-            onfocus="openReferralDropdown()" required>
+    <label class="referral-form-label">Student ID:</label>
+    <div style="width:100%;">
+        <input type="text" class="referral-form-input" id="referralStudentIdInput"
+            placeholder="Enter Student ID" autocomplete="off"
+            oninput="lookupReferralStudent(this.value)" required>
         <input type="hidden" id="referralStudentNumber">
-        <div id="referralStudentDropdown" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid var(--navy);border-top:none;border-radius:0 0 7px 7px;max-height:200px;overflow-y:auto;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
+        <div id="referral-student-lookup-box" style="width:100%;margin-top:6px;padding:8px 12px;border-radius:7px;font-size:13px;font-weight:500;min-height:36px;display:flex;align-items:center;gap:8px;"></div>
     </div>
 </div>
                         <div class="referral-form-row"><label class="referral-form-label">Grade:</label><input type="text" class="referral-form-input" id="referralGradeSelect" placeholder="Auto-filled from student" readonly style="background:#f0f0f0;cursor:not-allowed;"></div>
@@ -1629,8 +1629,20 @@ function handleCounselingBack() { const f=document.getElementById('newReferralFo
 function showNewReferralForm() {
     document.getElementById('referralHistory').style.display = 'none';
     document.getElementById('newReferralForm').classList.remove('hidden');
-    loadCounselingStudentDropdown();
 
+    // Reset all fields
+    const idInput = document.getElementById('referralStudentIdInput');
+    if (idInput) idInput.value = '';
+    document.getElementById('referralStudentNumber').value = '';
+    document.getElementById('referralGradeSelect').value = '';
+    document.getElementById('referralSectionSelect').value = '';
+    document.getElementById('referralOffenseRecord').value = '';
+    const lb = document.getElementById('referral-student-lookup-box');
+    if (lb) { lb.style.cssText = ''; lb.textContent = ''; }
+    document.getElementById('offenseRecordModalContent').innerHTML =
+        '<div style="text-align:center;color:#aaa;padding:40px;">Select a student to view their offense record.</div>';
+
+    // Set today's date, locked
     const today = new Date().toISOString().split('T')[0];
     const dateInput = document.querySelector('#referralForm input[type="date"]');
     if (dateInput) {
@@ -1772,154 +1784,92 @@ function initStudentRecordSearch() {
 
 
 // ════════════════════════════════════════════════════════════
-//  COUNSELING REFERRAL — student dropdown
+//  COUNSELING REFERRAL — student ID lookup
 // ════════════════════════════════════════════════════════════
-let allReferralStudents = [];
+let referralLookupTimer;
 
-async function loadCounselingStudentDropdown() {
-    const input = document.getElementById('referralStudentInput');
-    if (!input) return;
-    input.value = '';
-    document.getElementById('referralStudentNumber').value = '';
-    allReferralStudents = await fetchStudents();
-    renderReferralDropdown('');
-}
+async function lookupReferralStudent(val) {
+    const box = document.getElementById('referral-student-lookup-box');
+    const numInput = document.getElementById('referralStudentNumber');
 
-function openReferralDropdown() {
-    renderReferralDropdown(document.getElementById('referralStudentInput').value);
-    document.getElementById('referralStudentDropdown').style.display = 'block';
-}
+    // Reset dependent fields
+    numInput.value = '';
+    document.getElementById('referralGradeSelect').value = '';
+    document.getElementById('referralSectionSelect').value = '';
+    document.getElementById('referralOffenseRecord').value = '';
 
-function filterReferralStudents(val) {
-    document.getElementById('referralStudentNumber').value = '';
-    renderReferralDropdown(val);
-    document.getElementById('referralStudentDropdown').style.display = 'block';
-}
-
-function renderReferralDropdown(query) {
-    const dd  = document.getElementById('referralStudentDropdown');
-    const q   = query.trim().toLowerCase();
-    const matches = q
-        ? allReferralStudents.filter(s => s.full_name_display.toLowerCase().includes(q) || s.student_number.includes(q))
-        : allReferralStudents;
-
-    if (!matches.length) {
-        dd.innerHTML = `<div style="padding:10px 14px;color:#aaa;font-style:italic;font-size:14px;">No students found</div>`;
-        return;
-    }
-    dd.innerHTML = matches.map(s => {
-        // store the full student data as JSON in a data attribute to avoid escaping bugs
-        const safeData = JSON.stringify({
-            student_number:    s.student_number    || '',
-            full_name_display: s.full_name_display || '',
-            grade_level:       s.grade_level       || '',
-            section_name:      s.section_name      || '',
-        }).replace(/'/g, '&#39;');
-
-        return `
-            <div style="padding:10px 14px;font-size:14px;color:var(--dark-navy);cursor:pointer;border-bottom:1px solid #f0f0f0;"
-                 onmouseover="this.style.background='#f5f5f5'"
-                 onmouseout="this.style.background=''"
-                 onmousedown="selectReferralStudentFromEl(this)"
-                 data-student='${safeData}'>
-                <strong>${escHtml(s.full_name_display)}</strong>
-                <span style="color:#888;font-size:12px;margin-left:8px;">${escHtml(s.grade_level||'')} - ${escHtml(s.section_name||'')}</span>
-            </div>
-        `;
-    }).join('');
-}
-async function selectReferralStudentFromEl(el) {
-    let student;
-    try {
-        student = JSON.parse(el.dataset.student);
-    } catch(e) {
-        console.error('Failed to parse student data', e);
+    if (!val.trim()) {
+        box.style.cssText = '';
+        box.textContent = '';
         return;
     }
 
-    const { student_number, full_name_display, grade_level, section_name } = student;
+    box.style.cssText = 'background:#f0f4ff;color:#3d3567;border:1px solid #c0caf5;width:100%;margin-top:6px;padding:8px 12px;border-radius:7px;font-size:13px;font-weight:500;min-height:36px;display:flex;align-items:center;gap:8px;';
+    box.textContent = '⏳ Looking up…';
 
-    console.log('Selected student:', student); // remove after confirming it works
+    clearTimeout(referralLookupTimer);
+    referralLookupTimer = setTimeout(async () => {
+        const s = await fetchStudentByNumber(val.trim());
+        if (s) {
+            const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
+            box.style.cssText = 'background:#f0fff4;color:#276749;border:1px solid #9ae6b4;width:100%;margin-top:6px;padding:8px 12px;border-radius:7px;font-size:13px;font-weight:500;min-height:36px;display:flex;align-items:center;gap:8px;';
+            box.innerHTML = `✓ <strong>${escHtml(s.full_name_display)}</strong> &nbsp;|&nbsp; ${escHtml(gs)}`;
 
-    document.getElementById('referralStudentInput').value  = full_name_display;
-    document.getElementById('referralStudentNumber').value = student_number;
-    document.getElementById('referralStudentDropdown').style.display = 'none';
+            // Populate hidden and auto-fill fields
+            numInput.value = s.student_number;
+            document.getElementById('referralGradeSelect').value = s.grade_level || '';
+            document.getElementById('referralSectionSelect').value = s.section_name || '';
 
-    // Auto-fill Grade
-    const gradeEl = document.getElementById('referralGradeSelect');
-    if (gradeEl) gradeEl.value = grade_level || '—';
+            // Load offense record
+            const offenseEl = document.getElementById('referralOffenseRecord');
+            const modalContent = document.getElementById('offenseRecordModalContent');
+            const modalSubtitle = document.getElementById('offenseRecordModalSubtitle');
+            if (offenseEl) offenseEl.value = 'Loading…';
+            if (modalSubtitle) modalSubtitle.textContent = s.full_name_display;
 
-    // Auto-fill Section
-    const sectionEl = document.getElementById('referralSectionSelect');
-    if (sectionEl) sectionEl.value = section_name || '—';
-
-    // Auto-fill Offense Record
-    // Auto-fill Offense Record + populate modal
-    const offenseEl = document.getElementById('referralOffenseRecord');
-    const modalContent = document.getElementById('offenseRecordModalContent');
-    const modalSubtitle = document.getElementById('offenseRecordModalSubtitle');
-
-    if (offenseEl) offenseEl.value = 'Loading…';
-    if (modalSubtitle) modalSubtitle.textContent = full_name_display;
-    if (modalContent) modalContent.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">Loading offense records…</div>`;
-
-    try {
-        const res  = await apiFetch(`${API_BASE}/get_student_offenses.php?student_number=${encodeURIComponent(student_number)}`);
-        const data = await res.json();
-
-        if (data.success && data.offenses && data.offenses.length) {
-            // Short summary for the text input
-            if (offenseEl) offenseEl.value = `${data.offenses.length} offense(s) on record — click View Full Record`;
-
-            // Full table for the modal
-            if (modalContent) {
-                modalContent.innerHTML = `
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead>
-                            <tr style="background:var(--dark-navy);">
-                                <th style="padding:12px 15px;text-align:left;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Date</th>
-                                <th style="padding:12px 15px;text-align:left;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Offense</th>
-                                <th style="padding:12px 15px;text-align:center;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Level</th>
-                                <th style="padding:12px 15px;text-align:left;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Remarks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.offenses.map((o, i) => `
-                                <tr style="background:${i % 2 === 0 ? '#fff' : '#f9f9f9'};">
-                                    <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;">${escHtml(o.offense_date)}</td>
-                                    <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;">${escHtml(o.offense)}</td>
-                                    <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;text-align:center;">
-                                        <span style="background:var(--dark-navy);color:var(--gold);padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;">Level ${o.offense_level}</span>
-                                    </td>
-                                    <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;">${escHtml(o.remarks || '—')}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    <div style="margin-top:15px;padding:10px 15px;background:var(--light-gray);border-radius:8px;font-size:13px;color:var(--gray);">
-                        Total: <strong style="color:var(--dark-navy);">${data.offenses.length} offense(s)</strong> on record
-                    </div>
-                `;
+            try {
+                const res = await apiFetch(`${API_BASE}/get_student_offenses.php?student_number=${encodeURIComponent(s.student_number)}`);
+                const data = await res.json();
+                if (data.success && data.offenses && data.offenses.length) {
+                    if (offenseEl) offenseEl.value = `${data.offenses.length} offense(s) on record — click View Full Record`;
+                    if (modalContent) {
+                        modalContent.innerHTML = `
+                            <table style="width:100%;border-collapse:collapse;">
+                                <thead><tr style="background:var(--dark-navy);">
+                                    <th style="padding:12px 15px;text-align:left;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Date</th>
+                                    <th style="padding:12px 15px;text-align:left;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Offense</th>
+                                    <th style="padding:12px 15px;text-align:center;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Level</th>
+                                    <th style="padding:12px 15px;text-align:left;font-size:13px;font-weight:600;color:var(--gold);border-bottom:2px solid var(--gold);">Remarks</th>
+                                </tr></thead>
+                                <tbody>
+                                    ${data.offenses.map((o, i) => `
+                                        <tr style="background:${i % 2 === 0 ? '#fff' : '#f9f9f9'};">
+                                            <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;">${escHtml(o.offense_date)}</td>
+                                            <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;">${escHtml(o.offense)}</td>
+                                            <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;text-align:center;">
+                                                <span style="background:var(--dark-navy);color:var(--gold);padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;">Level ${o.offense_level}</span>
+                                            </td>
+                                            <td style="padding:12px 15px;font-size:13px;color:var(--dark-navy);border-bottom:1px solid #eee;">${escHtml(o.remarks || '—')}</td>
+                                        </tr>`).join('')}
+                                </tbody>
+                            </table>
+                            <div style="margin-top:15px;padding:10px 15px;background:var(--light-gray);border-radius:8px;font-size:13px;color:var(--gray);">
+                                Total: <strong style="color:var(--dark-navy);">${data.offenses.length} offense(s)</strong> on record
+                            </div>`;
+                    }
+                } else {
+                    if (offenseEl) offenseEl.value = 'No offense records found.';
+                    if (modalContent) modalContent.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No offense records found for this student.</div>`;
+                }
+            } catch (err) {
+                if (offenseEl) offenseEl.value = 'Failed to load offense record.';
             }
         } else {
-            if (offenseEl) offenseEl.value = 'No offense records found.';
-            if (modalContent) modalContent.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No offense records found for this student.</div>`;
+            box.style.cssText = 'background:#fff5f5;color:#c53030;border:1px solid #fc8181;width:100%;margin-top:6px;padding:8px 12px;border-radius:7px;font-size:13px;font-weight:500;min-height:36px;display:flex;align-items:center;gap:8px;';
+            box.textContent = '✗ Student not found';
         }
-    } catch (err) {
-        console.error('Offense fetch error:', err);
-        if (offenseEl) offenseEl.value = 'Failed to load offense record.';
-        if (modalContent) modalContent.innerHTML = `<div style="text-align:center;color:#dc3545;padding:40px;">Failed to load offense records.</div>`;
-    }
+    }, 400);
 }
-
-// Close referral dropdown when clicking outside
-document.addEventListener('click', function(e) {
-    const dd = document.getElementById('referralStudentDropdown');
-    const input = document.getElementById('referralStudentInput');
-    if (dd && input && !dd.contains(e.target) && e.target !== input) {
-        dd.style.display = 'none';
-    }
-});
 
 // ════════════════════════════════════════════════════════════
 //  GMRC — live student list
