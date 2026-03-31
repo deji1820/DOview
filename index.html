@@ -1624,7 +1624,14 @@ function navigateToCounselingReferral() {
     updateActiveNav(1); 
     updateTopBar('📋','Counseling Referral',''); 
     loadReferralHistory(); 
-}function navigateToDocumentSubmission() { hideAllPages(); document.getElementById('documentSubmissionPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Submission',''); initPagination('doc-submission','tbody-doc-submission',10); }
+}
+function navigateToDocumentSubmission() {
+    hideAllPages();
+    document.getElementById('documentSubmissionPage').classList.remove('hidden');
+    updateActiveNav(2);
+    updateTopBar('📄', 'Document Submission', '');
+    loadDocumentSubmissions();
+}
 function navigateToDocumentRequest() { hideAllPages(); document.getElementById('documentRequestPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Request',''); initPagination('doc-request','tbody-doc-request',10); }
 function navigateToDocumentIssuance() { hideAllPages(); document.getElementById('documentIssuancePage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Issuance',''); }
 function navigateToFormTemplates() { hideAllPages(); document.getElementById('formTemplatesPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Form Templates',''); }
@@ -2070,15 +2077,30 @@ function applyDocRequestFilters() {
 // ════════════════════════════════════════════════════════════
 //  DOCUMENT APPROVE / DISAPPROVE
 // ════════════════════════════════════════════════════════════
-function approveDocument(btn) {
-    const row=btn.closest('tr'); const sc=row.querySelector('.status-cell');
-    sc.textContent='Approved'; sc.className='status-cell status-approved';
-    row.querySelector('.action-cell').innerHTML='<a class="action-link" href="#">View</a>';
-}
-function disapproveDocument(btn) {
-    const row=btn.closest('tr'); const sc=row.querySelector('.status-cell');
-    sc.textContent='Returned'; sc.className='status-cell status-returned';
-    row.querySelector('.action-cell').innerHTML='<a class="action-link" href="#">View</a>';
+async function updateDocStatus(documentId, newStatus, linkEl) {
+    try {
+        const res  = await apiFetch(`${API_BASE}/update_document_status.php`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ document_id: documentId, status: newStatus }),
+        });
+        const data = await res.json();
+ 
+        if (data.success) {
+            const row        = linkEl.closest('tr');
+            const statusCell = row.querySelector('.status-cell');
+            const actionCell = row.querySelector('.action-cell');
+ 
+            statusCell.textContent = newStatus;
+            statusCell.className   = 'status-cell ' + (newStatus === 'Approved' ? 'status-approved' : 'status-returned');
+            actionCell.innerHTML   = '<a class="action-link" href="#">View</a>';
+        } else {
+            alert(data.message || 'Failed to update status.');
+        }
+    } catch (err) {
+        console.error('updateDocStatus:', err);
+        alert('Network error. Please try again.');
+    }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2326,6 +2348,61 @@ async function loadReferralHistory() {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc3545;padding:30px;">Failed to load.</td></tr>`;
     }
 }
+
+    
+async function loadDocumentSubmissions() {
+    const tbody = document.getElementById('tbody-doc-submission');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr>`;
+ 
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_document_submissions.php`);
+        const data = await res.json();
+ 
+        if (!data.success || !data.submissions.length) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">No submissions yet.</td></tr>`;
+            initPagination('doc-submission', 'tbody-doc-submission', 10);
+            return;
+        }
+ 
+        // Populate grade filter dropdown
+        const gradeFilter = document.getElementById('dsGradeFilter');
+        if (gradeFilter) {
+            const grades = [...new Set(data.submissions.map(s => s.grade_level))].sort();
+            gradeFilter.innerHTML = '<option value="">All</option>' +
+                grades.map(g => `<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
+        }
+ 
+        tbody.innerHTML = data.submissions.map(s => {
+            const statusClass = s.display_status === 'Approved' ? 'status-approved'
+                              : s.display_status === 'Returned' ? 'status-returned'
+                              : 'status-pending';
+ 
+            const dateDisplay = s.submitted_at ? s.submitted_at.split(' ')[0] : '—';
+ 
+            return `<tr>
+                <td>${escHtml(s.student_name)}</td>
+                <td>${escHtml(s.grade_section)}</td>
+                <td>${escHtml(s.file_name || 'N/A')}</td>
+                <td>${escHtml(dateDisplay)}</td>
+                <td class="status-cell ${statusClass}">${escHtml(s.display_status)}</td>
+                <td class="action-cell">
+                    ${s.display_status === 'Pending'
+                        ? `<a class="action-link" href="#" onclick="updateDocStatus(${s.document_id},'Approved',this);return false;">Approve</a> /
+                           <a class="action-link" href="#" style="color:#dc3545;" onclick="updateDocStatus(${s.document_id},'Returned',this);return false;">Return</a>`
+                        : `<a class="action-link" href="#">View</a>`
+                    }
+                </td>
+            </tr>`;
+        }).join('');
+ 
+        initPagination('doc-submission', 'tbody-doc-submission', 10);
+    } catch (err) {
+        console.error('loadDocumentSubmissions:', err);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:30px;">Failed to load.</td></tr>`;
+    }
+}    
+
 </script>
 </body>
 </html>
