@@ -1631,7 +1631,6 @@ function showNewReferralForm() {
     document.getElementById('newReferralForm').classList.remove('hidden');
     loadCounselingStudentDropdown();
 
-    // Set today's date on the referral date field
     const today = new Date().toISOString().split('T')[0];
     const dateInput = document.querySelector('#referralForm input[type="date"]');
     if (dateInput) {
@@ -1641,6 +1640,8 @@ function showNewReferralForm() {
         dateInput.style.cursor = 'not-allowed';
     }
 }
+
+function navigateToStudentRecordsDetail(name, gradeSection, adviser, studentNumber) {
     hideAllPages();
     document.getElementById('studentRecordsDetailPage').classList.remove('hidden');
     document.getElementById('studentDetailName').textContent = name;
@@ -1650,7 +1651,6 @@ function showNewReferralForm() {
     updateTopBar('📋', 'Student Offense Records', '');
     loadStudentOffenseDetail(studentNumber);
 }
-
 async function loadStudentOffenseDetail(studentNumber) {
     const tbody = document.getElementById('tbody-student-detail');
     if (!tbody) return;
