@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const studentNumber = document.getElementById('referralStudentNumber').value;
         const grade         = document.getElementById('referralGradeSelect').value;
         const section       = document.getElementById('referralSectionSelect').value;
-        const dateSent = document.getElementById('referralDate').value;
+        const dateSent = document.querySelector('#referralForm input[type="date"]').value;
         const remarks       = this.querySelector('textarea').value.trim();
         const offenseRecord = document.getElementById('referralOffenseRecord').value;
 
