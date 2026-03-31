@@ -1625,6 +1625,84 @@ function navigateToCounselingReferral() {
     updateTopBar('📋','Counseling Referral',''); 
     loadReferralHistory(); 
 }
+
+async function loadDocumentRequests() {
+    const tbody = document.getElementById('tbody-doc-request');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr>`;
+
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_document_requests.php`);
+        const data = await res.json();
+
+        if (!data.success || !data.requests.length) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">No requests yet.</td></tr>`;
+            initPagination('doc-request', 'tbody-doc-request', 10);
+            return;
+        }
+
+        // Populate grade filter
+        const gradeFilter = document.getElementById('drGradeFilter');
+        if (gradeFilter) {
+            const grades = [...new Set(data.requests.map(r => r.grade_level))].sort();
+            gradeFilter.innerHTML = '<option value="">All</option>' +
+                grades.map(g => `<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
+        }
+
+        tbody.innerHTML = data.requests.map(r => {
+            const statusClass = r.display_status === 'Approved' ? 'status-approved'
+                              : r.display_status === 'Returned' ? 'status-returned'
+                              : 'status-pending';
+            const dateDisplay = r.requested_at ? r.requested_at.split(' ')[0] : '—';
+
+            return `<tr>
+                <td>${escHtml(r.student_name)}</td>
+                <td>${escHtml(r.grade_section)}</td>
+                <td>${escHtml(r.document_type)}</td>
+                <td>${escHtml(dateDisplay)}</td>
+                <td class="status-cell ${statusClass}">${escHtml(r.display_status)}</td>
+                <td class="action-cell">
+                    ${r.display_status === 'Pending'
+                        ? `<a class="action-link" href="#" onclick="updateRequestStatus(${r.request_id},'Approved',this);return false;">Approve</a> /
+                           <a class="action-link" href="#" style="color:#dc3545;" onclick="updateRequestStatus(${r.request_id},'Returned',this);return false;">Return</a>`
+                        : `<span class="status-cell ${statusClass}">${escHtml(r.display_status)}</span>`
+                    }
+                </td>
+            </tr>`;
+        }).join('');
+
+        initPagination('doc-request', 'tbody-doc-request', 10);
+    } catch (err) {
+        console.error('loadDocumentRequests:', err);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:30px;">Failed to load.</td></tr>`;
+    }
+}
+
+async function updateRequestStatus(requestId, newStatus, linkEl) {
+    try {
+        const res  = await apiFetch(`${API_BASE}/update_document_request_status.php`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ request_id: requestId, status: newStatus }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            const row        = linkEl.closest('tr');
+            const statusCell = row.querySelector('.status-cell');
+            const actionCell = row.querySelector('.action-cell');
+            statusCell.textContent = newStatus;
+            statusCell.className   = 'status-cell ' + (newStatus === 'Approved' ? 'status-approved' : 'status-returned');
+            actionCell.innerHTML   = `<span class="status-cell ${newStatus === 'Approved' ? 'status-approved' : 'status-returned'}">${newStatus}</span>`;
+        } else {
+            alert(data.message || 'Failed to update status.');
+        }
+    } catch (err) {
+        console.error('updateRequestStatus:', err);
+        alert('Network error. Please try again.');
+    }
+}
+    
 function navigateToDocumentSubmission() {
     hideAllPages();
     document.getElementById('documentSubmissionPage').classList.remove('hidden');
@@ -1632,8 +1710,13 @@ function navigateToDocumentSubmission() {
     updateTopBar('📄', 'Document Submission', '');
     loadDocumentSubmissions();
 }
-function navigateToDocumentRequest() { hideAllPages(); document.getElementById('documentRequestPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Request',''); initPagination('doc-request','tbody-doc-request',10); }
-function navigateToDocumentIssuance() { hideAllPages(); document.getElementById('documentIssuancePage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Issuance',''); }
+function navigateToDocumentRequest() {
+    hideAllPages();
+    document.getElementById('documentRequestPage').classList.remove('hidden');
+    updateActiveNav(2);
+    updateTopBar('📄', 'Document Request', '');
+    loadDocumentRequests();
+}function navigateToDocumentIssuance() { hideAllPages(); document.getElementById('documentIssuancePage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Issuance',''); }
 function navigateToFormTemplates() { hideAllPages(); document.getElementById('formTemplatesPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Form Templates',''); }
 function backToOffenseManagement() { hideAllPages(); document.getElementById('offenseManagementPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📁','Offense Management',''); }
 function backToDocuments() { hideAllPages(); document.getElementById('documentsPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Documents',''); }
