@@ -1626,14 +1626,20 @@ function backToDocuments() { hideAllPages(); document.getElementById('documentsP
 function backToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); }
 function backToGMRC() { hideAllPages(); document.getElementById('gmrcPage').classList.remove('hidden'); updateActiveNav(3); updateTopBar('📖','GMRC Grade',''); }
 function handleCounselingBack() { const f=document.getElementById('newReferralForm'); if(!f.classList.contains('hidden')){ f.classList.add('hidden'); document.getElementById('referralHistory').style.display='block'; } else { backToOffenseManagement(); } }
-function showNewReferralForm() { document.getElementById('referralHistory').style.display='none'; document.getElementById('newReferralForm').classList.remove('hidden'); loadCounselingStudentDropdown(); }function navigateToStudentRecordsDetail(name, gradeSection, adviser, studentNumber) {function showNewReferralForm() {
+function showNewReferralForm() {
     document.getElementById('referralHistory').style.display = 'none';
     document.getElementById('newReferralForm').classList.remove('hidden');
     loadCounselingStudentDropdown();
 
-    // ← Add this line:
+    // Set today's date on the referral date field
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('referralDate').value = today;
+    const dateInput = document.querySelector('#referralForm input[type="date"]');
+    if (dateInput) {
+        dateInput.value = today;
+        dateInput.readOnly = true;
+        dateInput.style.background = '#f0f0f0';
+        dateInput.style.cursor = 'not-allowed';
+    }
 }
     hideAllPages();
     document.getElementById('studentRecordsDetailPage').classList.remove('hidden');
