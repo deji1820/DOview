@@ -1311,9 +1311,16 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
             <div class="referral-content">
                 <div id="referralHistory">
                     <div class="referral-header">
-                        <h2 class="referral-title">Referral History</h2>
-                        <button class="btn-new-referral" onclick="showNewReferralForm()">+ New Referral</button>
-                    </div>
+    <h2 class="referral-title">Referral History</h2>
+    <div style="display:flex;align-items:center;gap:15px;">
+        <input type="date" id="referralHistoryDateFilter" class="date-selector"
+            onchange="filterReferralHistoryByDate(this.value)"
+            title="Filter by date">
+        <button class="btn-edit-history" onclick="clearReferralDateFilter()"
+            style="padding:10px 20px;">Clear</button>
+        <button class="btn-new-referral" onclick="showNewReferralForm()">+ New Referral</button>
+    </div>
+</div>
                     <div class="referral-history-table-wrapper">
                         <table class="referral-history-table">
                             <thead><tr><th>Name</th><th>Grade</th><th>Section</th><th>Remarks</th><th>Date Sent</th></tr></thead>
@@ -2252,6 +2259,46 @@ function prependToReferralHistory(data) {
     initPagination('referral-history', 'tbody-referral-history', 10);
 }
 
+
+function filterReferralHistoryByDate(dateVal) {
+    const rows = Array.from(document.querySelectorAll('#tbody-referral-history tr'));
+    rows.forEach(row => {
+        if (!dateVal) {
+            row.dataset.filtered = 'false';
+            return;
+        }
+        // Date sent is in the 5th column (index 4)
+        const cellText = row.cells[4] ? row.cells[4].textContent.trim() : '';
+        // cellText may be "2025-07-17" or "July 17, 2025" — normalize both
+        let rowDate = '';
+        if (cellText.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            rowDate = cellText;
+        } else {
+            // Try parsing "Month DD, YYYY"
+            const parsed = new Date(cellText);
+            if (!isNaN(parsed)) {
+                rowDate = parsed.toISOString().split('T')[0];
+            }
+        }
+        row.dataset.filtered = (rowDate === dateVal) ? 'false' : 'true';
+    });
+    if (paginationState['referral-history']) {
+        paginationState['referral-history'].currentPage = 1;
+    }
+    renderPagination('referral-history');
+}
+
+function clearReferralDateFilter() {
+    const picker = document.getElementById('referralHistoryDateFilter');
+    if (picker) picker.value = '';
+    const rows = Array.from(document.querySelectorAll('#tbody-referral-history tr'));
+    rows.forEach(row => row.dataset.filtered = 'false');
+    if (paginationState['referral-history']) {
+        paginationState['referral-history'].currentPage = 1;
+    }
+    renderPagination('referral-history');
+}
+    
 async function loadReferralHistory() {
     const tbody = document.getElementById('tbody-referral-history');
     if (!tbody) return;
