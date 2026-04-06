@@ -62,26 +62,60 @@ document.addEventListener('click', function(e) {
 function initStudentIdLookup() {
     const input = document.getElementById('avStudentId');
     const box   = document.getElementById('av-student-lookup-box');
-    if (!input || !box || input._wired) return;
-    input._wired = true;
+    if (!input || !box) return;
+
+    // Remove old listener by cloning the element
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+
     let timer;
-    input.addEventListener('input', function() {
+    newInput.addEventListener('input', function() {
         clearTimeout(timer);
         const val = this.value.trim();
-        if (!val) { box.className='av-student-lookup-box empty'; box.textContent=''; return; }
-        box.className='av-student-lookup-box loading'; box.textContent='⏳ Looking up…';
+        if (!val) {
+            box.className = 'av-student-lookup-box empty';
+            box.textContent = '';
+            return;
+        }
+        box.className = 'av-student-lookup-box loading';
+        box.textContent = '⏳ Looking up…';
         timer = setTimeout(async () => {
-            const s = await fetchStudentByNumber(val);
-            if (s) {
-                const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
-                box.className = 'av-student-lookup-box found';
-                box.innerHTML = `✓ <strong>${escHtml(s.full_name_display)}</strong> &nbsp;|&nbsp; ${escHtml(gs)}`;
-            } else {
+            try {
+                const res  = await apiFetch(`${API_BASE}/get_students.php?student_number=${encodeURIComponent(val)}`);
+                const data = await res.json();
+                console.log('Student lookup response:', data); // debug
+                const s = (data.success && data.students && data.students.length) ? data.students[0] : null;
+                if (s) {
+                    const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
+                    box.className = 'av-student-lookup-box found';
+                    box.innerHTML = `✓ <strong>${escHtml(s.full_name_display)}</strong> &nbsp;|&nbsp; ${escHtml(gs)}`;
+                } else {
+                    box.className = 'av-student-lookup-box not-found';
+                    box.textContent = '✗ Student not found';
+                }
+            } catch(err) {
+                console.error('Student lookup error:', err);
                 box.className = 'av-student-lookup-box not-found';
-                box.textContent = '✗ Student not found';
+                box.textContent = '✗ Lookup failed — check console';
             }
         }, 400);
     });
+}
+
+async function showAddViolation() {
+    document.getElementById('addViolationModal').classList.remove('hidden');
+    const today = new Date().toISOString().split('T')[0];
+    const di = document.getElementById('avOffenseDate');
+    if (di && !di.value) di.value = today;
+
+    // Reset lookup box state
+    const box = document.getElementById('av-student-lookup-box');
+    if (box) { box.className = 'av-student-lookup-box empty'; box.textContent = ''; }
+
+    initStudentIdLookup(); // wire up AFTER modal is visible
+
+    await Promise.all([loadOffenseTypes(), loadTeachers()]);
+    renderReporterDropdown('');
 }
 
 // ════════════════════════════════════════════════════════════
