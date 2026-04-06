@@ -566,6 +566,21 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
             box-shadow: 0 24px 60px rgba(0,0,0,0.35);
             animation: modalFadeIn 0.3s ease-out;
         }
+        /* DM Tabs */
+.dm-tab {
+    padding: 12px 32px; border: 2px solid #ddd; background: #fff;
+    font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 500;
+    color: var(--dark-navy); cursor: pointer; transition: all 0.2s;
+    border-radius: 0;
+}
+.dm-tab:first-child { border-radius: 8px 0 0 8px; }
+.dm-tab:last-child  { border-radius: 0 8px 8px 0; }
+.dm-tab.active { background: var(--gold); color: var(--dark-navy); border-color: var(--gold); font-weight: 700; }
+.dm-tab:hover:not(.active) { background: #f5f5f5; }
+
+/* DM table action links */
+.dm-action { color: var(--dark-navy); text-decoration: underline; cursor: pointer; font-size: 12px; margin: 0 4px; background:none; border:none; font-family:'Outfit',sans-serif; }
+.dm-action.del { color: #dc3545; }
         .av-modal-header {
             background: var(--dark-navy); padding: 20px 30px;
             display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
@@ -1239,72 +1254,97 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
 
         <!-- ── DISCIPLINARY MEASURES ─────────────────────────── -->
         <div id="disciplinaryMeasuresPage" class="disciplinary-measures-page hidden">
-            <button class="back-button" onclick="backToOffenseManagement()"><div class="back-icon">←</div><span>The HIMC Disciplinary Measures</span></button>
-            <div class="disciplinary-content">
-                <div class="disciplinary-header">
-                    <div class="disciplinary-action-buttons">
-                        <button class="btn-edit-history" onclick="navigateToEditDisciplinaryMeasures()">Edit</button>
-                        <button class="btn-edit-history">History</button>
-                    </div>
-                </div>
-                <!-- Level sections kept intact from original -->
-                <div class="offense-level-section">
-                    <h3 class="offense-level-title">LEVEL 1 - Negligence to Fulfill Basic Duties</h3>
-                    <div class="offense-content">
-                        <ul class="offense-list"><li>Tardiness</li><li>Unexpected absences</li><li>Wearing inappropriate attire</li><li>Failure to submit correspondence / have materials a 3rd time</li><li>Sleeping in class</li><li>Violation of SOP's</li></ul>
-                        <ul class="offense-list"><li>Misbehavior</li><li>Improper haircut</li><li>No ID or No gate pass</li><li>Loitering during class hours</li><li>Littering</li><li>Trespassing</li><li>Disruption of classes.</li></ul>
-                    </div>
-                    <div class="penalties-section"><h4 class="penalties-title">Penalties for Level 1 Offenses</h4><ul class="penalties-list"><li>1st Offense - Reminder + 1 demerit</li><li>2nd Offense - Reminder + 2 demerits</li><li>3rd Offense - Reprimand + 3 demerits</li><li>4th Offense onwards - Parent Notification + 4 demerits</li></ul></div>
-                </div>
-                <div class="offense-level-section">
-                    <h3 class="offense-level-title">LEVEL 2 - Minor Behavioral Infractions</h3>
-                    <div class="offense-content">
-                        <ul class="offense-list"><li>Any disruptive behavior/audio/video/material</li><li>Using vulgar language or indecent publication</li><li>Bringing of electronic gadgets</li><li>Staying in the school premises after school hours</li></ul>
-                        <ul class="offense-list"><li>Putting temporary marks on their bodies</li><li>Putting on make-up or colored nail polish</li><li>Fancy haircut or loud hair color</li><li>Holding unauthorized meetings or rallies</li><li>Vandalism</li></ul>
-                    </div>
-                    <div class="penalties-section"><h4 class="penalties-title">Penalties for Level 2 Offenses</h4><ul class="penalties-list"><li>1st Offense - Reminder + 2 demerit</li><li>2nd Offense - Reminder + 4 demerits</li><li>3rd Offense - Reprimand + 6 demerits</li><li>4th Offense onwards - Parent Notification + Deprivation + 8 demerits</li></ul></div>
-                </div>
-                <div class="offense-level-section">
-                    <h3 class="offense-level-title">LEVEL 3 - Acts of Disrespect and Dishonesty</h3>
-                    <div class="offense-content">
-                        <ul class="offense-list"><li>Any form of disrespect or malicious act</li><li>Tampering of any school document/property</li><li>Any form of dishonesty (forgery, identity theft)</li><li>Bringing of cigarettes, lighter or matches</li></ul>
-                        <ul class="offense-list"><li>Lending of ID's and gate pass</li><li>Cutting classes</li><li>Inflicting of harm to himself/herself</li><li>Stealing or attempted theft</li><li>Bringing pornographic materials</li><li>Bringing of gambling materials</li><li>Assault or threat to a person in authority</li></ul>
-                    </div>
-                    <div class="penalties-section"><h4 class="penalties-title">Penalties for Level 3 Offenses</h4><ul class="penalties-list"><li>1st Offense - Parent Notification + 3 demerits</li><li>2nd Offense - Parent Notification + Deprivation + 6 demerits</li><li>3rd Offense - Parent Notification + Prohibition + 9 demerits</li></ul></div>
-                </div>
-                <div class="offense-level-section">
-                    <h3 class="offense-level-title">LEVEL 4 - Acts of Unbecoming of an HIMC Student</h3>
-                    <div class="offense-content">
-                        <ul class="offense-list"><li>Any form of cheating</li><li>Any kind of bullying</li><li>Violation of the Data Privacy Act</li><li>Violation of the HIMC Child Protection Policy</li><li>Threatening/Harassment of any individual</li></ul>
-                        <ul class="offense-list"><li>Smoking cigarettes / vaping, extortion, under influence of drugs or alcohol, initiating fights or gambling, backbiting or rumor mongering</li><li>Possession of deadly weapons</li></ul>
-                    </div>
-                    <div class="penalties-section"><h4 class="penalties-title">Penalties for Level 4 Offenses</h4><ul class="penalties-list"><li>1st Offense - Parent Notification + 1 day suspension + 26 demerits</li><li>2nd Offense - Parent Notification + 2 days suspension + Conduct probation + 26 demerits</li><li>3rd Offense - Parent Notification + Removal from classes + warning + 26 demerits</li></ul></div>
-                </div>
-            </div>
+    <button class="back-button" onclick="backToOffenseManagement()">
+        <div class="back-icon">←</div><span>The HIMC Disciplinary Measures</span>
+    </button>
+
+    <!-- TAB BUTTONS -->
+    <div style="display:flex;gap:0;margin-bottom:24px;">
+        <button class="dm-tab active" id="dmTab1" onclick="switchDMTab(1)">Level 1</button>
+        <button class="dm-tab" id="dmTab2" onclick="switchDMTab(2)">Level 2</button>
+        <button class="dm-tab" id="dmTab3" onclick="switchDMTab(3)">Level 3</button>
+        <button class="dm-tab" id="dmTab4" onclick="switchDMTab(4)">Level 4</button>
+    </div>
+
+    <!-- LEVEL CONTENT -->
+    <div id="dmLevelContent" style="background:#f4f3f8;border-radius:12px;padding:30px;">
+
+        <!-- Level title + edit -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h3 id="dmLevelTitle" style="font-size:18px;font-weight:600;color:var(--dark-navy);">Level 1: Negligence to Fulfill Basic Duties</h3>
+            <button onclick="editLevelName()" style="background:none;border:none;color:var(--dark-navy);font-size:13px;cursor:pointer;text-decoration:underline;">✏ Edit Level Name</button>
         </div>
 
-        <!-- ── EDIT DISCIPLINARY MEASURES ───────────────────── -->
-        <div id="editDisciplinaryMeasuresPage" class="daily-reports-page hidden">
-            <button class="back-button" onclick="backToDisciplinaryMeasures()"><div class="back-icon">←</div><span>Edit Disciplinary Measures</span></button>
-            <div class="reports-container">
-                <div style="margin-bottom:30px;">
-                    <div class="select-level-group">
-                        <label class="select-level-label">Select Level:</label>
-                        <select class="date-selector" id="levelSelector"><option value="">Select Level</option><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option></select>
-                        <button class="btn-edit-history">✏️ Edit Level Name</button>
-                    </div>
-                </div>
-                <div style="margin-bottom:40px;">
-                    <div class="section-header-with-action"><h3 class="section-title">Level X Offense List:</h3><button class="btn-add-new">[+ Add New Offense Type</button></div>
-                    <table class="edit-offense-table"><thead><tr><th style="width:40%">Offense Name</th><th style="width:60%">Description</th></tr></thead><tbody><tr><td><input type="text" class="table-input" placeholder="Enter offense name"></td><td><input type="text" class="table-input" placeholder="Enter description"></td></tr><tr><td><input type="text" class="table-input" placeholder="Enter offense name"></td><td><input type="text" class="table-input" placeholder="Enter description"></td></tr></tbody></table>
-                </div>
-                <div style="margin-bottom:40px;">
-                    <h3 class="section-title" style="margin-bottom:20px;">Level X Penalty Rules:</h3>
-                    <table class="edit-penalty-table"><thead><tr><th>Occurrence</th><th>Demerit</th><th>Action</th><th>Extra Penalty</th><th>GMRC Override</th></tr></thead><tbody><tr><td><input type="text" class="table-input" placeholder="1st"></td><td><input type="text" class="table-input" placeholder="0"></td><td><input type="text" class="table-input" placeholder="Reminder"></td><td><input type="text" class="table-input" placeholder="None"></td><td><input type="text" class="table-input" placeholder="No"></td></tr></tbody></table>
-                </div>
-                <div class="note-section"><label class="note-label">Note / Comment:</label><div class="note-input-wrapper"><textarea class="note-textarea" placeholder="Type note / comment here"></textarea><button class="btn-send">Send</button></div></div>
+        <!-- OFFENSE LIST -->
+        <div style="background:#fff;border-radius:10px;padding:24px;margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h4 style="font-size:15px;font-weight:600;color:var(--dark-navy);">Offense List:</h4>
+                <button onclick="showAddOffenseModal()" style="background:none;border:none;color:var(--dark-navy);font-size:13px;cursor:pointer;">[+ Add Offense Type</button>
+            </div>
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                    <tr style="background:#f8f8f8;">
+                        <th style="padding:10px 14px;text-align:center;font-weight:600;color:var(--dark-navy);border:1px solid #e0e0e0;">Offense Type</th>
+                        <th style="padding:10px 14px;text-align:center;font-weight:600;color:var(--dark-navy);border:1px solid #e0e0e0;width:120px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="dmOffensetbody">
+                    <tr><td colspan="2" style="text-align:center;color:#aaa;padding:20px;">Loading…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PENALTY RULES -->
+        <div style="background:#fff;border-radius:10px;padding:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h4 style="font-size:15px;font-weight:600;color:var(--dark-navy);">Penalty Rules:</h4>
+                <button style="background:none;border:none;color:var(--dark-navy);font-size:13px;cursor:pointer;">[+ Add Penalty Rules</button>
+            </div>
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                    <tr style="background:#f8f8f8;">
+                        <th style="padding:10px 14px;text-align:center;font-weight:600;color:var(--dark-navy);border:1px solid #e0e0e0;">Occurence</th>
+                        <th style="padding:10px 14px;text-align:center;font-weight:600;color:var(--dark-navy);border:1px solid #e0e0e0;">Demerit</th>
+                        <th style="padding:10px 14px;text-align:center;font-weight:600;color:var(--dark-navy);border:1px solid #e0e0e0;">Action</th>
+                        <th style="padding:10px 14px;text-align:center;font-weight:600;color:var(--dark-navy);border:1px solid #e0e0e0;">Extra Penalty</th>
+                        <th style="padding:10px 14px;text-align:center;font-weight:600;color:var(--dark-navy);border:1px solid #e0e0e0;width:120px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="dmPenaltyTbody">
+                    <tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;">Loading…</td></tr>
+                </tbody>
+            </table>
+            <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+                <button onclick="saveDMChanges()" style="padding:12px 40px;background:var(--dark-navy);color:var(--gold);border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Save</button>
             </div>
         </div>
+    </div>
+
+    <!-- ADD OFFENSE MODAL -->
+    <div id="addOffenseModal" class="av-modal-overlay hidden">
+        <div style="background:#fff;border-radius:12px;width:90%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div style="background:var(--dark-navy);padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:16px;font-weight:700;color:var(--gold);">Add Offense Type</span>
+                <button onclick="closeAddOffenseModal()" style="background:none;border:none;color:var(--gold);font-size:20px;cursor:pointer;">✕</button>
+            </div>
+            <div style="padding:24px;">
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:13px;font-weight:600;color:var(--dark-navy);display:block;margin-bottom:6px;">Offense Title</label>
+                    <input type="text" id="newOffenseTitle" placeholder="e.g. Tardiness" style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:7px;font-family:'Outfit',sans-serif;font-size:14px;box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:13px;font-weight:600;color:var(--dark-navy);display:block;margin-bottom:6px;">Description</label>
+                    <textarea id="newOffenseDesc" placeholder="Brief description" style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:7px;font-family:'Outfit',sans-serif;font-size:14px;min-height:70px;resize:vertical;box-sizing:border-box;"></textarea>
+                </div>
+                <p id="addOffenseError" style="color:#dc3545;font-size:12px;min-height:16px;margin-bottom:8px;"></p>
+                <div style="display:flex;justify-content:flex-end;gap:10px;">
+                    <button onclick="closeAddOffenseModal()" style="padding:10px 24px;background:#f0f0f0;border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;">Cancel</button>
+                    <button onclick="submitNewOffense()" style="padding:10px 24px;background:var(--dark-navy);color:var(--gold);border:none;border-radius:7px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
         <!-- ── DAILY OFFENSE REPORTS ─────────────────────────── -->
         <div id="dailyReportsPage" class="daily-reports-page hidden">
@@ -1682,8 +1722,15 @@ function showDashboard() {
   setMaxDates();
 }
 
-function navigateToDisciplinaryMeasures() { hideAllPages(); document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','The HIMC Disciplinary Measures',''); }
-function navigateToEditDisciplinaryMeasures() { hideAllPages(); document.getElementById('editDisciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Edit Disciplinary Measures',''); }
+function navigateToDisciplinaryMeasures() {
+    hideAllPages();
+    document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden');
+    updateActiveNav(1);
+    updateTopBar('📋', 'The HIMC Disciplinary Measures', '');
+    dmCurrentLevel = 1;
+    document.querySelectorAll('.dm-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+    loadDisciplinaryMeasures();
+}function navigateToEditDisciplinaryMeasures() { hideAllPages(); document.getElementById('editDisciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Edit Disciplinary Measures',''); }
 function backToDisciplinaryMeasures() { hideAllPages(); document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','The HIMC Disciplinary Measures',''); }
 function navigateToDailyReports() {
     hideAllPages();
@@ -2283,6 +2330,190 @@ function closeAddViolationModal() {
 }
 // offenseMap removed — using DB data via offenseTypesByLevel
 
+// ════════════════════════════════════════════════════════════
+//  DISCIPLINARY MEASURES — live from DB
+// ════════════════════════════════════════════════════════════
+let dmCurrentLevel = 1;
+let dmOffenseData  = {}; // keyed by level
+let dmPenaltyData  = {}; // keyed by level
+
+const dmLevelNames = {
+    1: 'Level 1: Negligence to Fulfill Basic Duties',
+    2: 'Level 2: Minor Behavioral Infractions',
+    3: 'Level 3: Acts of Disrespect and Dishonesty',
+    4: 'Level 4: Acts Unbecoming of an HIMC Student'
+};
+
+const dmOccurrenceLabel = ['','1st','2nd','3rd','4th','5th'];
+
+async function loadDisciplinaryMeasures() {
+    try {
+        // Load offense types
+        const r1   = await apiFetch(`${API_BASE}/get_offense_types.php`);
+        const d1   = await r1.json();
+        if (d1.success) {
+            dmOffenseData = d1.by_level || {};
+        }
+
+        // Load penalties — use get_counselor_stats or a dedicated endpoint
+        // We'll derive penalties from the offense types response if included,
+        // otherwise fetch separately
+        const r2   = await apiFetch(`${API_BASE}/get_offense_types.php?include_penalties=1`);
+        const d2   = await r2.json();
+        if (d2.penalties_by_level) {
+            dmPenaltyData = d2.penalties_by_level;
+        } else {
+            // Fallback: hardcoded from DB data
+            dmPenaltyData = {
+                1: [{occurrence:1,demerit:1,action:'Reminder',extra:''},{occurrence:2,demerit:2,action:'Reminder',extra:''},{occurrence:3,demerit:3,action:'Reprimand',extra:''},{occurrence:4,demerit:4,action:'Parent Notification',extra:''}],
+                2: [{occurrence:1,demerit:2,action:'Reminder',extra:''},{occurrence:2,demerit:4,action:'Reminder',extra:''},{occurrence:3,demerit:6,action:'Reprimand',extra:''},{occurrence:4,demerit:8,action:'Parent Notification',extra:'Deprivation from subject'}],
+                3: [{occurrence:1,demerit:3,action:'Parent Notification',extra:''},{occurrence:2,demerit:6,action:'Parent Notification',extra:'Deprivation from subject'},{occurrence:3,demerit:9,action:'Parent Notification',extra:'1 day suspension'}],
+                4: [{occurrence:1,demerit:26,action:'Parent Notification',extra:'1 day suspension'},{occurrence:2,demerit:26,action:'Parent Notification',extra:'2 days suspension + Conduct Probation'},{occurrence:3,demerit:26,action:'Parent Notification',extra:'Removal from classes + Warning'}]
+            };
+        }
+
+        renderDMLevel(dmCurrentLevel);
+    } catch(err) {
+        console.error('loadDisciplinaryMeasures:', err);
+    }
+}
+
+function switchDMTab(level) {
+    dmCurrentLevel = level;
+    document.querySelectorAll('.dm-tab').forEach((t, i) => t.classList.toggle('active', i + 1 === level));
+    renderDMLevel(level);
+}
+
+function renderDMLevel(level) {
+    // Title
+    document.getElementById('dmLevelTitle').textContent = dmLevelNames[level];
+
+    // Offenses
+    const offenses = dmOffenseData[level] || [];
+    const otbody   = document.getElementById('dmOffensetbody');
+    if (!offenses.length) {
+        otbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#aaa;padding:20px;">No offenses found for this level.</td></tr>`;
+    } else {
+        otbody.innerHTML = offenses.map(o => `
+            <tr>
+                <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${escHtml(o.title)}</td>
+                <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">
+                    <button class="dm-action" onclick="editOffense(${o.offense_type_id}, '${escJs(o.title)}', '${escJs(o.description||'')}')">Edit</button>
+                    <button class="dm-action del" onclick="deleteOffense(${o.offense_type_id})">Delete</button>
+                </td>
+            </tr>`).join('');
+    }
+
+    // Penalties
+    const penalties = dmPenaltyData[level] || [];
+    const ptbody    = document.getElementById('dmPenaltyTbody');
+    if (!penalties.length) {
+        ptbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;">No penalties found.</td></tr>`;
+    } else {
+        ptbody.innerHTML = penalties.map((p, i) => `
+            <tr>
+                <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${dmOccurrenceLabel[p.occurrence] || p.occurrence}</td>
+                <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${p.demerit}</td>
+                <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${escHtml(p.action || p.action_type || '')}</td>
+                <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${escHtml(p.extra || p.notes || '')}</td>
+                <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">
+                    <button class="dm-action">Edit</button>
+                    <button class="dm-action del">Delete</button>
+                </td>
+            </tr>`).join('');
+    }
+}
+
+function editLevelName() {
+    const current = dmLevelNames[dmCurrentLevel].replace(/^Level \d: /, '');
+    const val = prompt('Edit level name:', current);
+    if (val && val.trim()) {
+        dmLevelNames[dmCurrentLevel] = `Level ${dmCurrentLevel}: ${val.trim()}`;
+        document.getElementById('dmLevelTitle').textContent = dmLevelNames[dmCurrentLevel];
+    }
+}
+
+// ADD OFFENSE
+function showAddOffenseModal() {
+    document.getElementById('newOffenseTitle').value = '';
+    document.getElementById('newOffenseDesc').value  = '';
+    document.getElementById('addOffenseError').textContent = '';
+    document.getElementById('addOffenseModal').classList.remove('hidden');
+}
+function closeAddOffenseModal() {
+    document.getElementById('addOffenseModal').classList.add('hidden');
+}
+
+async function submitNewOffense() {
+    const title = document.getElementById('newOffenseTitle').value.trim();
+    const desc  = document.getElementById('newOffenseDesc').value.trim();
+    const errEl = document.getElementById('addOffenseError');
+    if (!title) { errEl.textContent = 'Title is required.'; return; }
+    errEl.textContent = '';
+
+    try {
+        const res  = await apiFetch(`${API_BASE}/add_offense_type.php`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ title, description: desc, level_id: dmCurrentLevel })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeAddOffenseModal();
+            // Add to local data and re-render
+            if (!dmOffenseData[dmCurrentLevel]) dmOffenseData[dmCurrentLevel] = [];
+            dmOffenseData[dmCurrentLevel].push({ offense_type_id: data.offense_type_id, title, description: desc });
+            renderDMLevel(dmCurrentLevel);
+        } else {
+            errEl.textContent = data.message || 'Failed to add offense.';
+        }
+    } catch(err) {
+        errEl.textContent = 'Network error. Please try again.';
+    }
+}
+
+async function deleteOffense(offenseTypeId) {
+    if (!confirm('Delete this offense type?')) return;
+    try {
+        const res  = await apiFetch(`${API_BASE}/delete_offense_type.php`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ offense_type_id: offenseTypeId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            dmOffenseData[dmCurrentLevel] = dmOffenseData[dmCurrentLevel].filter(o => o.offense_type_id !== offenseTypeId);
+            renderDMLevel(dmCurrentLevel);
+        } else {
+            alert(data.message || 'Failed to delete.');
+        }
+    } catch(err) {
+        alert('Network error.');
+    }
+}
+
+function editOffense(id, title, desc) {
+    const newTitle = prompt('Edit offense title:', title);
+    if (!newTitle || !newTitle.trim()) return;
+    apiFetch(`${API_BASE}/update_offense_type.php`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ offense_type_id: id, title: newTitle.trim(), description: desc })
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            const o = dmOffenseData[dmCurrentLevel].find(o => o.offense_type_id === id);
+            if (o) o.title = newTitle.trim();
+            renderDMLevel(dmCurrentLevel);
+        } else {
+            alert(data.message || 'Failed to update.');
+        }
+    }).catch(() => alert('Network error.'));
+}
+
+function saveDMChanges() {
+    alert('Changes saved!');
+}
+    
 function viewOffenseManagement() { document.getElementById('successModal').classList.add('hidden'); navigateToDailyReports(); }
 
 // ════════════════════════════════════════════════════════════
