@@ -475,6 +475,20 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
             flex-direction: column;
             box-shadow: 4px 0 10px rgba(0,0,0,0.1);
         }
+
+        .nav-parent { cursor: pointer; user-select: none; }
+.nav-dropdown-arrow { margin-left: auto; font-size: 11px; color: var(--gold); transition: transform 0.25s ease; }
+.nav-dropdown-arrow.open { transform: rotate(180deg); }
+.nav-dropdown { background: rgba(0,0,0,0.2); overflow: hidden; }
+.nav-sub-item {
+    display: block; padding: 10px 20px 10px 58px;
+    color: rgba(245,197,99,0.75); font-size: 13px; font-weight: 400;
+    text-decoration: none; transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+.nav-sub-item:hover { color: var(--light-gold); background: rgba(212,166,80,0.08); border-left-color: var(--gold); }
+.nav-sub-item.active { color: var(--light-gold); font-weight: 600; border-left-color: var(--gold); }
+        
         .sidebar-header {
             padding: 25px 20px;
             background: var(--dark-navy);
@@ -1092,18 +1106,38 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
             </div>
         </div>
         <nav class="nav-menu">
-  <a href="#" class="nav-item active" onclick="navigateToHome(event)">
-    <span class="nav-icon">🏠</span><span>Dashboard</span>
-  </a>
-  <a href="#" class="nav-item" onclick="navigateToOffenseManagement(event)">
-    <span class="nav-icon">📁</span><span>Manage Offense</span><span style="margin-left:auto;font-size:11px;opacity:0.6;">▾</span>
-  </a>
-  <a href="#" class="nav-item" onclick="navigateToDocuments(event)">
-    <span class="nav-icon">📄</span><span>Manage Documents</span><span style="margin-left:auto;font-size:11px;opacity:0.6;">▾</span>
-  </a>
-  <a href="#" class="nav-item" onclick="navigateToGMRC(event)">
-    <span class="nav-icon">📖</span><span>Manage GMRC</span>
-  </a>
+    <a href="#" class="nav-item active" onclick="navigateToHome(event)">
+        <span class="nav-icon">🏠</span><span>Dashboard</span>
+    </a>
+
+    <!-- Manage Offense -->
+    <div class="nav-item nav-parent" onclick="toggleNavDropdown('offenseDropdown', this)">
+        <span class="nav-icon">📁</span><span>Manage Offense</span>
+        <span class="nav-dropdown-arrow" id="offenseArrow">▼</span>
+    </div>
+    <div class="nav-dropdown hidden" id="offenseDropdown">
+        <a href="#" class="nav-sub-item" onclick="navTo(event, navigateToDisciplinaryMeasures)">The HIMC Disciplinary Measures</a>
+        <a href="#" class="nav-sub-item" onclick="navTo(event, navigateToStudentRecords)">Student Offense Records</a>
+        <a href="#" class="nav-sub-item" onclick="navTo(event, navigateToCounselingReferral)">Counseling Referral</a>
+        <a href="#" class="nav-sub-item" onclick="navTo(event, navigateToDailyReports)">Daily Offense Reports</a>
+    </div>
+
+    <!-- Manage Documents -->
+    <div class="nav-item nav-parent" onclick="toggleNavDropdown('documentsDropdown', this)">
+        <span class="nav-icon">📄</span><span>Manage Documents</span>
+        <span class="nav-dropdown-arrow" id="documentsArrow">▼</span>
+    </div>
+    <div class="nav-dropdown hidden" id="documentsDropdown">
+        <a href="#" class="nav-sub-item" onclick="navTo(event, navigateToDocumentSubmission)">Document Submission</a>
+        <a href="#" class="nav-sub-item" onclick="navTo(event, navigateToDocumentRequest)">Document Request</a>
+        <a href="#" class="nav-sub-item" onclick="navTo(event, navigateToDocumentIssuance)">Document Issuance</a>
+        <a href="#" class="nav-sub-item" onclick="navTo(event, navigateToFormTemplates)">Form Templates</a>
+    </div>
+
+    <!-- Manage GMRC -->
+    <a href="#" class="nav-item" onclick="navigateToGMRC(event)">
+        <span class="nav-icon">📖</span><span>Manage GMRC</span>
+    </a>
 </nav>
     </aside>
 
@@ -2471,6 +2505,23 @@ tbody.innerHTML = data.violations.map(v => `
     console.error('loadDashboardRecent:', err);
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:24px;font-size:13px;">Failed to load.</td></tr>`;
   }
+}
+
+function toggleNavDropdown(dropdownId, parentEl) {
+    const dropdown = document.getElementById(dropdownId);
+    const arrow = parentEl.querySelector('.nav-dropdown-arrow');
+    const isOpen = !dropdown.classList.contains('hidden');
+    dropdown.classList.toggle('hidden', isOpen);
+    arrow.classList.toggle('open', !isOpen);
+    parentEl.classList.toggle('active', !isOpen);
+}
+
+function navTo(e, fn) {
+    e.preventDefault();
+    // Mark active sub-item
+    document.querySelectorAll('.nav-sub-item').forEach(el => el.classList.remove('active'));
+    e.target.classList.add('active');
+    fn();
 }
 
 // ── DASHBOARD SEARCH FILTER ──────────────────────────────
