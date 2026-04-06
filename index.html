@@ -60,30 +60,35 @@ document.addEventListener('click', function(e) {
 //  STUDENT ID LIVE LOOKUP
 // ════════════════════════════════════════════════════════════
 function initStudentIdLookup() {
-    const input = document.getElementById('avStudentId');
-    const box   = document.getElementById('av-student-lookup-box');
-    if (!input || !box) return;
-
-    // Remove old listener by cloning the element
-    const newInput = input.cloneNode(true);
-    input.parentNode.replaceChild(newInput, input);
+    // Use event delegation on the document instead of the input directly
+    if (document._studentLookupWired) return;
+    document._studentLookupWired = true;
 
     let timer;
-    newInput.addEventListener('input', function() {
+    document.addEventListener('input', function(e) {
+        if (e.target.id !== 'avStudentId') return;
+        const box = document.getElementById('av-student-lookup-box');
+        if (!box) return;
+
         clearTimeout(timer);
-        const val = this.value.trim();
+        const val = e.target.value.trim();
         if (!val) {
             box.className = 'av-student-lookup-box empty';
             box.textContent = '';
             return;
         }
+
         box.className = 'av-student-lookup-box loading';
         box.textContent = '⏳ Looking up…';
+
         timer = setTimeout(async () => {
             try {
+                console.log('Fetching student:', val);
                 const res  = await apiFetch(`${API_BASE}/get_students.php?student_number=${encodeURIComponent(val)}`);
+                console.log('Response status:', res.status);
                 const data = await res.json();
-                console.log('Student lookup response:', data); // debug
+                console.log('Response data:', data);
+
                 const s = (data.success && data.students && data.students.length) ? data.students[0] : null;
                 if (s) {
                     const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
@@ -94,7 +99,7 @@ function initStudentIdLookup() {
                     box.textContent = '✗ Student not found';
                 }
             } catch(err) {
-                console.error('Student lookup error:', err);
+                console.error('Lookup error:', err);
                 box.className = 'av-student-lookup-box not-found';
                 box.textContent = '✗ Lookup failed — check console';
             }
@@ -313,6 +318,7 @@ function viewDailyReports() {
 //  SINGLE DOMContentLoaded
 // ════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+    initStudentIdLookup();
     const rf = document.getElementById('referralForm');
     if (rf) rf.addEventListener('submit', async function(e) {
         e.preventDefault();
