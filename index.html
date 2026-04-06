@@ -3146,9 +3146,13 @@ function updateReferencePanel() {
 }
 
 // 4. editPenaltyRule — NEW full penalty editor
+// 4. editPenaltyRule — saves to DB then updates local state
 window.editPenaltyRule = async function(levelIndex, penaltyIndex) {
     const penalty = (dmPenaltyData[levelIndex]||[])[penaltyIndex];
-    if(!penalty) return;
+    if(!penalty){
+        HimcModal.info('Error','Penalty rule not found. Try refreshing the page.');
+        return;
+    }
     const occLabel = ['','1st','2nd','3rd','4th','5th'];
     HimcModal.form(
         `Edit Penalty — ${occLabel[penalty.occurrence]||penalty.occurrence} Offense`,
@@ -3170,23 +3174,55 @@ window.editPenaltyRule = async function(levelIndex, penaltyIndex) {
             const demerit    = parseInt(document.getElementById('ep-demerit').value);
             const action     = document.getElementById('ep-action').value;
             const extra      = document.getElementById('ep-extra').value.trim();
+
             if(isNaN(demerit)||demerit<0){ HimcModal.setError('Demerit must be 0 or more.'); return; }
             if(!action){ HimcModal.setError('Please select an action.'); return; }
+
+            const penaltyId = penalty.penalty_id || penalty.id;
+            if(!penaltyId){
+                HimcModal.setError('penalty_id missing — check that get_offense_types.php returns penalty_id in penalties_by_level.');
+                return;
+            }
+
             HimcModal.setLoading();
+
             try {
-                const penaltyId = penalty.penalty_id||penalty.id;
-                if(penaltyId){
-                    const res  = await apiFetch(`${API_BASE}/update_penalty_rule.php`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({penalty_id:penaltyId,occurrence,demerit,action,notes:extra})});
-                    const data = await res.json();
-                    if(!data.success){ HimcModal.setError(data.message||'Failed to save.'); HimcModal.resetLoading(); return; }
+                const res  = await apiFetch(`${API_BASE}/update_penalty_rule.php`, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ penalty_id: penaltyId, occurrence, demerit, action, notes: extra }),
+                });
+                const data = await res.json();
+                if(!data.success){
+                    HimcModal.setError(data.message || 'Failed to save.');
+                    HimcModal.resetLoading();
+                    return;
                 }
-            } catch { /* no endpoint yet — update locally only */ }
+            } catch(err) {
+                HimcModal.setError('Network error — changes not saved to server.');
+                HimcModal.resetLoading();
+                return;
+            }
+
+            // Update local state
             const p = dmPenaltyData[levelIndex][penaltyIndex];
-            p.occurrence=occurrence; p.demerit=demerit;
-            p.action=action; p.action_type=action;
-            p.extra=extra; p.notes=extra;
+            p.occurrence  = occurrence;
+            p.demerit     = demerit;
+            p.action      = action;
+            p.action_type = action;
+            p.extra       = extra;
+            p.notes       = extra;
+
+            // Keep window ref in sync
+            if(window.dmPenaltyData && window.dmPenaltyData[levelIndex]){
+                window.dmPenaltyData[levelIndex][penaltyIndex] = { ...p };
+            }
+
             HimcModal.close();
-            renderDMLevel(dmCurrentLevel);
+            renderDMLevel(levelIndex);
+
+            // Bust the offense types cache so Add Violation modal stays fresh
+            offenseTypesLoaded = false;
         }
     );
 };
