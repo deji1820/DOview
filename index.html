@@ -2438,21 +2438,34 @@ async function loadDashboardRecent() {
   try {
     const today = new Date().toISOString().split('T')[0];
     const res  = await apiFetch(`${API_BASE}/get_violations.php?date=${today}`);
-    const data = await res.json();
-    if (!data.success || !data.violations.length) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:24px;font-size:13px;">No offenses recorded today.</td></tr>`;
-      return;
-    }
-    const levelColors = ['','dash-badge-1','dash-badge-2','dash-badge-3','dash-badge-4'];
-    tbody.innerHTML = data.violations.map(v => `
-      <tr style="border-bottom:1px solid #f0f0f0;">
+const data = await res.json();
+if (!data.success || !data.violations.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:24px;font-size:13px;">No offenses recorded today.</td></tr>`;
+    return;
+}
+
+// Fetch grade/section for each unique student
+const uniqueNumbers = [...new Set(data.violations.map(v => v.student_number))];
+const studentMap = {};
+await Promise.all(uniqueNumbers.map(async num => {
+    try {
+        const sr   = await apiFetch(`${API_BASE}/get_students.php?student_number=${encodeURIComponent(num)}`);
+        const sd   = await sr.json();
+        const s    = (sd.success && sd.students && sd.students.length) ? sd.students[0] : null;
+        if (s) studentMap[num] = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
+    } catch(e) {}
+}));
+
+const levelColors = ['','dash-badge-1','dash-badge-2','dash-badge-3','dash-badge-4'];
+tbody.innerHTML = data.violations.map(v => `
+    <tr style="border-bottom:1px solid #f0f0f0;">
         <td style="padding:10px 14px;color:var(--dark-navy);">${escHtml(v.student_name)}</td>
-        <td style="padding:10px 14px;color:#555;">${escHtml([v.grade_level, v.section_name].filter(Boolean).join(' - ') || '—')}</td>
+        <td style="padding:10px 14px;color:#555;">${escHtml(studentMap[v.student_number] || '—')}</td>
         <td style="padding:10px 14px;"><span class="dash-badge ${levelColors[v.offense_level]||'dash-badge-1'}">Level ${v.offense_level}</span></td>
         <td style="padding:10px 14px;color:#555;">${escHtml(v.offense || '—')}</td>
         <td style="padding:10px 14px;color:#555;">${escHtml(v.reporter_name || '—')}</td>
         <td style="padding:10px 14px;color:#555;">${escHtml(v.remarks || '—')}</td>
-      </tr>`).join('');
+    </tr>`).join('');
     tbody._allRows = data.violations;
   } catch(err) {
     console.error('loadDashboardRecent:', err);
