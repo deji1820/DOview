@@ -120,6 +120,7 @@ async function showAddViolation() {
     initStudentIdLookup(); // wire up AFTER modal is visible
 
     await Promise.all([loadOffenseTypes(), loadTeachers()]);
+    updateReferencePanel();
     renderReporterDropdown('');
 }
 
@@ -147,8 +148,8 @@ function closeAddViolationModal() {
 let offenseTypesByLevel = {};
 let offenseTypesLoaded  = false;
 
-async function loadOffenseTypes() {
-    if (offenseTypesLoaded) return;
+async function loadOffenseTypes(force = false) {
+    if (offenseTypesLoaded && !force) return;
     try {
         const res  = await apiFetch(`${API_BASE}/get_offense_types.php`);
         const data = await res.json();
@@ -985,7 +986,7 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
         .view-link { display: inline-block; color: var(--dark-navy); font-size: 18px; font-weight: 600; text-decoration: underline; cursor: pointer; transition: all 0.3s ease; }
         .view-link:hover { color: var(--navy); transform: scale(1.05); }
         .referral-sent-modal { background: rgba(45,37,80,0.95); border-radius: 12px; padding: 60px 80px; max-width: 600px; text-align: center; animation: modalFadeIn 0.4s ease-out; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        ..referral-sent-title { font-size: 36px; font-weight: 700; color: var(--white); }
+.referral-sent-title { font-size: 36px; font-weight: 700; color: var(--white); }
 
         /* ── HIMC Floating Modal ────────────────────── */
         #himc-modal-overlay {
@@ -1022,7 +1023,7 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
         .hf-input,.hf-select{width:100%;padding:9px 12px;background:#f0f0f0;border:2px solid transparent;border-radius:7px;font-family:'Outfit',sans-serif;font-size:13px;color:#1e1838;box-sizing:border-box;}
         .hf-input:focus,.hf-select:focus{outline:none;border-color:#2d2550;background:#fff;}
         .hf-error{color:#dc3545;font-size:12px;min-height:16px;margin:4px 0 10px;}
-    </style> { font-size: 36px; font-weight: 700; color: var(--white); }
+    </style> 
     </style>
 </head>
 <body>
@@ -2508,6 +2509,8 @@ async function submitNewOffense() {
             if (!dmOffenseData[dmCurrentLevel]) dmOffenseData[dmCurrentLevel] = [];
             dmOffenseData[dmCurrentLevel].push({ offense_type_id: data.offense_type_id, title, description: desc });
             renderDMLevel(dmCurrentLevel);
+            offenseTypesLoaded = false;
+loadOffenseTypes();
         } else {
             errEl.textContent = data.message || 'Failed to add offense.';
         }
@@ -2528,6 +2531,7 @@ async function deleteOffense(offenseTypeId) {
         if (data.success) {
             dmOffenseData[dmCurrentLevel] = dmOffenseData[dmCurrentLevel].filter(o => o.offense_type_id !== offenseTypeId);
             renderDMLevel(dmCurrentLevel);
+            offenseTypesLoaded = false;
         } else {
             alert(data.message || 'Failed to delete.');
         }
@@ -2548,6 +2552,7 @@ function editOffense(id, title, desc) {
             const o = dmOffenseData[dmCurrentLevel].find(o => o.offense_type_id === id);
             if (o) o.title = newTitle.trim();
             renderDMLevel(dmCurrentLevel);
+            offenseTypesLoaded = false;
         } else {
             alert(data.message || 'Failed to update.');
         }
@@ -3109,6 +3114,38 @@ window.editOffense = async function(id, title, desc) {
     );
 };
 
+function updateReferencePanel() {
+    const levelNames = {
+        1: 'Negligence to Fulfill Basic Duties',
+        2: 'Minor Behavioral Infractions',
+        3: 'Acts of Disrespect & Dishonesty',
+        4: 'Acts Unbecoming of an HIMC Student'
+    };
+    const container = document.querySelector('.av-reference-section');
+    if (!container) return;
+
+    const levels = [1, 2, 3, 4];
+    const dividers = levels.slice(0, -1).map(() => `<div class="av-ref-divider"></div>`);
+
+    let html = `<div class="av-ref-title">Offense Level Reference</div>`;
+    levels.forEach((lvl, i) => {
+        const offenses = offenseTypesByLevel[lvl] || offenseTypesByLevel[String(lvl)] || [];
+        html += `
+            <div class="av-ref-level">
+                <div class="av-ref-level-badge">Level ${lvl}</div>
+                <div class="av-ref-level-name">${levelNames[lvl]}</div>
+                <ul class="av-ref-offense-list">
+                    ${offenses.length
+                        ? offenses.map(o => `<li>${escHtml(o.title || o)}</li>`).join('')
+                        : '<li style="color:rgba(245,197,99,0.4);font-style:italic;">No offenses defined</li>'
+                    }
+                </ul>
+            </div>
+            ${i < levels.length - 1 ? '<div class="av-ref-divider"></div>' : ''}`;
+    });
+    container.innerHTML = html;
+}
+
 // 4. editPenaltyRule — NEW full penalty editor
 window.editPenaltyRule = async function(levelIndex, penaltyIndex) {
     const penalty = (dmPenaltyData[levelIndex]||[])[penaltyIndex];
@@ -3274,21 +3311,42 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 // 14. Patch renderDMLevel to wire Edit buttons on penalty rows
+// 14. Patch renderDMLevel — fixes penalty Edit buttons + exposes data to window
+window.dmPenaltyData  = dmPenaltyData;   // expose let → window so patch can access it
+window.dmOffenseData  = dmOffenseData;
+window.dmCurrentLevel = dmCurrentLevel;
+
+// Keep dmCurrentLevel in sync when switchDMTab runs
+const _origSwitchDMTab = window.switchDMTab;
+window.switchDMTab = function(level) {
+    window.dmCurrentLevel = level;
+    dmCurrentLevel = level;
+    _origSwitchDMTab && _origSwitchDMTab(level);
+};
+
+// Keep dmOffenseData / dmPenaltyData in sync after loadDisciplinaryMeasures
+const _origLoadDM = window.loadDisciplinaryMeasures;
+window.loadDisciplinaryMeasures = async function() {
+    await _origLoadDM();
+    window.dmPenaltyData = dmPenaltyData;
+    window.dmOffenseData = dmOffenseData;
+};
+
 const _origRenderDMLevel = window.renderDMLevel;
-window.renderDMLevel = function(level){
+window.renderDMLevel = function(level) {
     _origRenderDMLevel && _origRenderDMLevel(level);
-    const penalties = (window.dmPenaltyData||{})[level]||[];
+    const penalties = dmPenaltyData[level] || [];
     const ptbody    = document.getElementById('dmPenaltyTbody');
-    if(!ptbody||!penalties.length) return;
+    if (!ptbody || !penalties.length) return;
     const occLabel  = ['','1st','2nd','3rd','4th','5th'];
-    ptbody.innerHTML = penalties.map((p,i)=>`
+    ptbody.innerHTML = penalties.map((p, i) => `
         <tr>
-            <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${occLabel[p.occurrence]||p.occurrence}</td>
+            <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${occLabel[p.occurrence] || p.occurrence}</td>
             <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${p.demerit}</td>
-            <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${escHtml(p.action||p.action_type||'')}</td>
-            <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${escHtml(p.extra||p.notes||'')}</td>
+            <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${escHtml(p.action || p.action_type || '')}</td>
+            <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">${escHtml(p.extra || p.notes || '')}</td>
             <td style="padding:10px 14px;border:1px solid #e0e0e0;text-align:center;">
-                <button class="dm-action" onclick="editPenaltyRule(${level},${i})">Edit</button>
+                <button class="dm-action" onclick="editPenaltyRule(${level}, ${i})">Edit</button>
             </td>
         </tr>`).join('');
 };
