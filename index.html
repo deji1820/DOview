@@ -126,15 +126,6 @@ async function showAddViolation() {
 // ════════════════════════════════════════════════════════════
 //  OPEN / CLOSE VIOLATION MODAL
 // ════════════════════════════════════════════════════════════
-async function showAddViolation() {
-    document.getElementById('addViolationModal').classList.remove('hidden');
-    const today = new Date().toISOString().split('T')[0];
-    const di = document.getElementById('avOffenseDate');
-    if (di && !di.value) di.value = today;
-    initStudentIdLookup();
-    await Promise.all([loadOffenseTypes(), loadTeachers()]);
-    renderReporterDropdown('');
-}
 
 function closeAddViolationModal() {
     document.getElementById('addViolationModal').classList.add('hidden');
@@ -568,7 +559,10 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
         }
         /* DM Tabs */
 .dm-tab {
-    padding: 12px 32px; border: 2px solid #ddd; background: #fff;
+    padding: 14px 0;
+    width: 120px;
+    text-align: center;
+    border: 2px solid #ddd; background: #fff;
     font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 500;
     color: var(--dark-navy); cursor: pointer; transition: all 0.2s;
     border-radius: 0;
@@ -1259,7 +1253,7 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
     </button>
 
     <!-- TAB BUTTONS -->
-    <div style="display:flex;gap:0;margin-bottom:24px;">
+    <div style="display:flex;gap:0;margin-bottom:24px;justify-content:center;">
         <button class="dm-tab active" id="dmTab1" onclick="switchDMTab(1)">Level 1</button>
         <button class="dm-tab" id="dmTab2" onclick="switchDMTab(2)">Level 2</button>
         <button class="dm-tab" id="dmTab3" onclick="switchDMTab(3)">Level 3</button>
@@ -2195,9 +2189,9 @@ function initGMRCFilters() {
 }
 
 function openOffenseRecordModal() {
-    const name = document.getElementById('referralStudentInput').value.trim();
-    if (!name) {
-        alert('Please select a student first.');
+    const num = document.getElementById('referralStudentNumber').value.trim();
+    if (!num) {
+        alert('Please enter and confirm a Student ID first.');
         return;
     }
     document.getElementById('offenseRecordModal').classList.remove('hidden');
@@ -2320,7 +2314,6 @@ async function updateDocStatus(documentId, newStatus, linkEl) {
 // ════════════════════════════════════════════════════════════
 //  ADD VIOLATION MODAL
 // ════════════════════════════════════════════════════════════
-function showAddViolation() { document.getElementById('addViolationModal').classList.remove('hidden'); }
 function closeAddViolationModal() {
     document.getElementById('addViolationModal').classList.add('hidden');
     document.getElementById('violationModalForm').reset();
