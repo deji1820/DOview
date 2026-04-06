@@ -377,6 +377,13 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
             background: var(--white);
         }
 
+        /* Dashboard level badges */
+.dash-badge { display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600; }
+.dash-badge-1 { background:#e8f4e8;color:#276749; }
+.dash-badge-2 { background:#fff3cd;color:#856404; }
+.dash-badge-3 { background:#ffe5d0;color:#8b4513; }
+.dash-badge-4 { background:#fce8e8;color:#a32d2d; }
+
         /* ── Utility ─────────────────────────────────── */
         .hidden { display: none !important; }
 
@@ -1045,19 +1052,19 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
             </div>
         </div>
         <nav class="nav-menu">
-            <a href="#" class="nav-item active" onclick="navigateToHome(event)">
-                <span class="nav-icon">🏠</span><span>Home</span>
-            </a>
-            <a href="#" class="nav-item" onclick="navigateToOffenseManagement(event)">
-                <span class="nav-icon">📁</span><span>Offense Management</span>
-            </a>
-            <a href="#" class="nav-item" onclick="navigateToDocuments(event)">
-                <span class="nav-icon">📄</span><span>Documents</span>
-            </a>
-            <a href="#" class="nav-item" onclick="navigateToGMRC(event)">
-                <span class="nav-icon">📖</span><span>GMRC Grade</span>
-            </a>
-        </nav>
+  <a href="#" class="nav-item active" onclick="navigateToHome(event)">
+    <span class="nav-icon">🏠</span><span>Dashboard</span>
+  </a>
+  <a href="#" class="nav-item" onclick="navigateToOffenseManagement(event)">
+    <span class="nav-icon">📁</span><span>Manage Offense</span><span style="margin-left:auto;font-size:11px;opacity:0.6;">▾</span>
+  </a>
+  <a href="#" class="nav-item" onclick="navigateToDocuments(event)">
+    <span class="nav-icon">📄</span><span>Manage Documents</span><span style="margin-left:auto;font-size:11px;opacity:0.6;">▾</span>
+  </a>
+  <a href="#" class="nav-item" onclick="navigateToGMRC(event)">
+    <span class="nav-icon">📖</span><span>Manage GMRC</span>
+  </a>
+</nav>
     </aside>
 
     <!-- ══ MAIN CONTENT ═════════════════════════════════════════ -->
@@ -1087,69 +1094,64 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
 
         <!-- ── HOME ─────────────────────────────────────────── -->
         <div id="dashboardHome" class="dashboard-content">
-            <div style="display:flex;gap:30px;margin-bottom:30px;align-items:flex-start;">
-                <div style="flex:0 0 340px;background:var(--light-gray);border-radius:8px;padding:30px;display:flex;flex-direction:column;gap:20px;">
-                    <h2 class="notice-header" style="margin-bottom:0;">Immediate Notice:</h2>
-                    <div class="notice-list">
-                        <div class="notice-item">Dela Cruz, Juan - Committed 3 Level 4 Offense</div>
-                        <div class="notice-item">Dela Cruz, Juan - Warning for Conduct Probation</div>
-                        <div class="notice-item">Penduko, Pedro - Subject for Honor Ineligibility</div>
-                    </div>
-                    <button class="add-violation-btn" onclick="showAddViolation()" style="width:100%;justify-content:center;">
-                        <span class="add-violation-plus">+</span><span>Add Violation</span>
-                    </button>
-                </div>
-                <div style="flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
-                    <div class="chart-card">
-                        <h3 class="chart-title">Frequency of Offenses</h3>
-                        <div class="chart-container"><canvas id="offenseFrequencyChart"></canvas></div>
-                        <div class="chart-legend">
-                            <div class="legend-item"><span class="legend-color" style="background:#1e3a5f;"></span><span>Late</span></div>
-                            <div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span><span>Loitering</span></div>
-                            <div class="legend-item"><span class="legend-color" style="background:#2e5a8e;"></span><span>Incomplete Uniform</span></div>
-                            <div class="legend-item"><span class="legend-color" style="background:#5ba3f5;"></span><span>Smoking</span></div>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                        <h3 class="chart-title">Grade Levels with the Most Level 4 Offenses</h3>
-                        <div class="chart-container"><canvas id="gradeLevelChart"></canvas></div>
-                        <div class="chart-legend">
-                            <div class="legend-item"><span class="legend-color" style="background:#1e3a5f;"></span><span>Grade 11</span></div>
-                            <div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span><span>Grade 12</span></div>
-                            <div class="legend-item"><span class="legend-color" style="background:#2e5a8e;"></span><span>Grade 10</span></div>
-                            <div class="legend-item"><span class="legend-color" style="background:#5ba3f5;"></span><span>Grade 7</span></div>
-                        </div>
-                    </div>
-                    <div class="chart-card">
-                        <h3 class="chart-title">Most Reported Level of Offense</h3>
-                        <div class="chart-container"><canvas id="offenseLevelChart"></canvas></div>
-                        <div class="chart-legend">
-                            <div class="legend-item"><span class="legend-color" style="background:#1e3a5f;"></span><span>Level 1</span></div>
-                            <div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span><span>Level 3</span></div>
-                            <div class="legend-item"><span class="legend-color" style="background:#2e5a8e;"></span><span>Level 2</span></div>
-                            <div class="legend-item"><span class="legend-color" style="background:#5ba3f5;"></span><span>Level 4</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="charts-section">
-                <div class="charts-header">
-                    <h2 class="quarter-title">QUARTER 1</h2>
-                    <div class="filters">
-                        <select class="filter-select"><option>Academic Year</option><option>2024-2025</option><option>2023-2024</option></select>
-                        <select class="filter-select" id="quarterSelect" onchange="updateQuarter(this.value)">
-                            <option value="1">1st Quarter</option><option value="2">2nd Quarter</option>
-                            <option value="3">3rd Quarter</option><option value="4">4th Quarter</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
-                    <div class="chart-summary-sentence" id="sum1">Most frequent offense this quarter: <strong>Late</strong> with <strong>105</strong> incidents, followed by Incomplete Uniform (83) and Smoking (22).</div>
-                    <div class="chart-summary-sentence" id="sum2">Grade level with most Level 4 offenses: <strong>Grade 11</strong> with <strong>39</strong> cases, followed by Grade 7 (18) and Grade 12 (12).</div>
-                    <div class="chart-summary-sentence" id="sum3">Most reported offense level this quarter: <strong>Level 1</strong> with <strong>100</strong> reports, followed by Level 4 (68) and Level 2 (22).</div>
-                </div>
-            </div>
-        </div>
+  <!-- STAT CARDS -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+    <div style="background:var(--dark-navy);border-radius:10px;padding:18px 14px;text-align:center;cursor:pointer;" onclick="navigateToDailyReports()">
+      <div style="font-size:11px;color:rgba(245,197,99,0.75);font-weight:500;margin-bottom:6px;line-height:1.4;">Daily Offense</div>
+      <div id="statDailyOffense" style="font-size:32px;font-weight:600;color:#f5c563;">—</div>
+    </div>
+    <div style="background:var(--dark-navy);border-radius:10px;padding:18px 14px;text-align:center;cursor:pointer;" onclick="navigateToDailyReports()">
+      <div style="font-size:11px;color:rgba(245,197,99,0.75);font-weight:500;margin-bottom:6px;line-height:1.4;">Pending Offense Report</div>
+      <div id="statPendingOffense" style="font-size:32px;font-weight:600;color:#f5c563;">—</div>
+    </div>
+    <div style="background:var(--dark-navy);border-radius:10px;padding:18px 14px;text-align:center;cursor:pointer;" onclick="navigateToDocumentSubmission()">
+      <div style="font-size:11px;color:rgba(245,197,99,0.75);font-weight:500;margin-bottom:6px;line-height:1.4;">Pending Document Submission</div>
+      <div id="statPendingSubmission" style="font-size:32px;font-weight:600;color:#f5c563;">—</div>
+    </div>
+    <div style="background:var(--dark-navy);border-radius:10px;padding:18px 14px;text-align:center;cursor:pointer;" onclick="navigateToDocumentRequest()">
+      <div style="font-size:11px;color:rgba(245,197,99,0.75);font-weight:500;margin-bottom:6px;line-height:1.4;">Pending Document Request</div>
+      <div id="statPendingRequest" style="font-size:32px;font-weight:600;color:#f5c563;">—</div>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENT BANNER -->
+  <div style="background:#f5c563;border-radius:8px;padding:12px 18px;display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+    <span style="font-size:16px;flex-shrink:0;">📢</span>
+    <span style="font-size:13px;font-weight:600;color:#1e1838;white-space:nowrap;">Announcement:</span>
+    <span id="announcementText" style="font-size:13px;color:#3a2d0a;flex:1;">Disciplinary announcements will appear here…</span>
+    <span style="font-size:12px;color:#2d2550;text-decoration:underline;cursor:pointer;white-space:nowrap;" onclick="editAnnouncement()">[Edit Banner]</span>
+  </div>
+
+  <!-- SEARCH + ADD BUTTON -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;">
+    <div style="flex:1;position:relative;">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:#999;">🔍</span>
+      <input type="text" id="dashboardSearch" placeholder="Quick Search"
+        style="width:100%;padding:10px 12px 10px 34px;border:1.5px solid #ddd;border-radius:8px;font-family:'Outfit',sans-serif;font-size:13px;background:#fff;color:var(--dark-navy);box-sizing:border-box;"
+        oninput="filterDashboardTable(this.value)">
+    </div>
+    <button class="add-violation-btn" onclick="showAddViolation()" style="padding:10px 20px;font-size:13px;">
+      <span class="add-violation-plus">+</span><span>Add Offense</span>
+    </button>
+  </div>
+
+  <!-- RECENT OFFENSES TABLE -->
+  <div style="background:#fff;border-radius:10px;border:1.5px solid #e0e0e0;overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:#f8f8f8;">
+          <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--dark-navy);border-bottom:1.5px solid #e0e0e0;">Name</th>
+          <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--dark-navy);border-bottom:1.5px solid #e0e0e0;">Grade &amp; Section</th>
+          <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--dark-navy);border-bottom:1.5px solid #e0e0e0;">Level</th>
+          <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--dark-navy);border-bottom:1.5px solid #e0e0e0;">Offense</th>
+          <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--dark-navy);border-bottom:1.5px solid #e0e0e0;">Reported by</th>
+          <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--dark-navy);border-bottom:1.5px solid #e0e0e0;">Remarks</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-dashboard-recent"></tbody>
+    </table>
+  </div>
+</div>
 
         <!-- ── OFFENSE MANAGEMENT ────────────────────────────── -->
         <div id="offenseManagementPage" class="dashboard-content hidden">
@@ -1597,7 +1599,15 @@ function navigateToGMRC(e) {
     loadGMRCSections();
     initGMRCFilters();
 }
-function showDashboard() { hideAllPages(); document.getElementById('dashboardHome').classList.remove('hidden'); updateActiveNav(0); initStudentIdLookup(); setTimeout(initializeCharts, 100); setMaxDates(); }
+function showDashboard() {
+  hideAllPages();
+  document.getElementById('dashboardHome').classList.remove('hidden');
+  updateActiveNav(0);
+  loadDashboardStats();
+  loadDashboardRecent();
+  setMaxDates();
+}
+
 function navigateToDisciplinaryMeasures() { hideAllPages(); document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','The HIMC Disciplinary Measures',''); }
 function navigateToEditDisciplinaryMeasures() { hideAllPages(); document.getElementById('editDisciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Edit Disciplinary Measures',''); }
 function backToDisciplinaryMeasures() { hideAllPages(); document.getElementById('disciplinaryMeasuresPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','The HIMC Disciplinary Measures',''); }
@@ -2345,6 +2355,86 @@ function initializeCharts(){
     const c1=document.getElementById('offenseFrequencyChart'); if(c1&&!c1._done){new Chart(c1.getContext('2d'),cfg(['Late','Incomplete Uniform','Loitering','Smoking'],[105,83,12,22]));c1._done=true;}
     const c2=document.getElementById('gradeLevelChart');       if(c2&&!c2._done){new Chart(c2.getContext('2d'),cfg(['Grade 11','Grade 10','Grade 12','Grade 7'],[39,10,12,18]));c2._done=true;}
     const c3=document.getElementById('offenseLevelChart');     if(c3&&!c3._done){new Chart(c3.getContext('2d'),cfg(['Level 1','Level 2','Level 3','Level 4'],[100,22,10,68]));c3._done=true;}
+}
+
+
+// ── DASHBOARD STAT CARDS ─────────────────────────────────
+async function loadDashboardStats() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Daily offenses count
+    const r1 = await apiFetch(`${API_BASE}/get_violations.php?date=${today}`);
+    const d1 = await r1.json();
+    const daily = (d1.success && d1.violations) ? d1.violations.length : 0;
+    document.getElementById('statDailyOffense').textContent = daily;
+
+    // Pending offense reports (no remarks/evidence = pending)
+    const pending = d1.success ? (d1.violations || []).filter(v => !v.remarks || v.remarks === 'N/A').length : 0;
+    document.getElementById('statPendingOffense').textContent = pending;
+
+    // Pending document submissions
+    const r2 = await apiFetch(`${API_BASE}/get_document_submissions.php`);
+    const d2 = await r2.json();
+    const pendingSub = (d2.success && d2.submissions)
+      ? d2.submissions.filter(s => s.display_status === 'Pending').length : 0;
+    document.getElementById('statPendingSubmission').textContent = pendingSub;
+
+    // Pending document requests
+    const r3 = await apiFetch(`${API_BASE}/get_document_requests.php`);
+    const d3 = await r3.json();
+    const pendingReq = (d3.success && d3.requests)
+      ? d3.requests.filter(r => r.display_status === 'Pending').length : 0;
+    document.getElementById('statPendingRequest').textContent = pendingReq;
+
+  } catch(err) { console.error('loadDashboardStats:', err); }
+}
+
+// ── DASHBOARD RECENT OFFENSES TABLE ─────────────────────
+async function loadDashboardRecent() {
+  const tbody = document.getElementById('tbody-dashboard-recent');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:24px;font-size:13px;">Loading…</td></tr>`;
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res  = await apiFetch(`${API_BASE}/get_violations.php?date=${today}`);
+    const data = await res.json();
+    if (!data.success || !data.violations.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:24px;font-size:13px;">No offenses recorded today.</td></tr>`;
+      return;
+    }
+    const levelColors = ['','dash-badge-1','dash-badge-2','dash-badge-3','dash-badge-4'];
+    tbody.innerHTML = data.violations.map(v => `
+      <tr style="border-bottom:1px solid #f0f0f0;">
+        <td style="padding:10px 14px;color:var(--dark-navy);">${escHtml(v.student_name)}</td>
+        <td style="padding:10px 14px;color:#555;">${escHtml(v.grade_section || '—')}</td>
+        <td style="padding:10px 14px;"><span class="dash-badge ${levelColors[v.offense_level]||'dash-badge-1'}">Level ${v.offense_level}</span></td>
+        <td style="padding:10px 14px;color:#555;">${escHtml(v.offense || '—')}</td>
+        <td style="padding:10px 14px;color:#555;">${escHtml(v.reporter_name || '—')}</td>
+        <td style="padding:10px 14px;color:#555;">${escHtml(v.remarks || '—')}</td>
+      </tr>`).join('');
+    tbody._allRows = data.violations;
+  } catch(err) {
+    console.error('loadDashboardRecent:', err);
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:24px;font-size:13px;">Failed to load.</td></tr>`;
+  }
+}
+
+// ── DASHBOARD SEARCH FILTER ──────────────────────────────
+function filterDashboardTable(query) {
+  const q = query.toLowerCase();
+  Array.from(document.querySelectorAll('#tbody-dashboard-recent tr')).forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+}
+
+// ── ANNOUNCEMENT EDIT ────────────────────────────────────
+function editAnnouncement() {
+  const el = document.getElementById('announcementText');
+  const current = el.textContent;
+  const val = prompt('Edit announcement:', current);
+  if (val !== null) el.textContent = val || current;
 }
 
 function prependToReferralHistory(data) {
