@@ -1931,6 +1931,75 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
         </div>
     </div>
 </div>
+    <!-- ══ FORM TEMPLATE MODAL ══════════════════════════════════ -->
+<div id="ftModalOverlay" class="av-modal-overlay hidden">
+    <div style="background:#fff;border-radius:14px;width:92%;max-width:560px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,0.35);animation:modalFadeIn 0.3s ease-out;">
+        <div style="background:var(--dark-navy);padding:20px 28px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+            <span id="ftModalTitle" style="font-size:18px;font-weight:700;color:var(--gold);">Upload Template</span>
+            <button onclick="closeFTModal()" style="background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+        </div>
+        <div style="padding:28px 32px 24px;overflow-y:auto;flex:1;">
+            <input type="hidden" id="ftTemplateId">
+
+            <!-- Form Name -->
+            <div style="margin-bottom:18px;">
+                <label style="font-size:13px;font-weight:600;color:var(--dark-navy);display:block;margin-bottom:6px;">Form Name <span style="color:#dc3545;">*</span></label>
+                <input type="text" id="ftName" class="av-form-input" placeholder="e.g. Incident Report Form" style="width:100%;box-sizing:border-box;">
+            </div>
+
+            <!-- Description -->
+            <div style="margin-bottom:18px;">
+                <label style="font-size:13px;font-weight:600;color:var(--dark-navy);display:block;margin-bottom:6px;">Description</label>
+                <textarea id="ftDescription" class="av-form-textarea" placeholder="Brief description of this template…" style="width:100%;box-sizing:border-box;min-height:72px;font-style:normal;"></textarea>
+            </div>
+
+            <!-- Existing file (edit mode) -->
+            <div id="ftExistingFile" style="display:none;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:#f0f4ff;border-radius:8px;border:1px solid #c0caf5;">
+                <span style="font-size:13px;color:#3d3567;">📎 Current file:</span>
+                <span id="ftExistingFileName" style="font-size:13px;color:#3d3567;font-weight:500;flex:1;"></span>
+            </div>
+
+            <!-- Drop Zone -->
+            <div style="margin-bottom:18px;">
+                <label style="font-size:13px;font-weight:600;color:var(--dark-navy);display:block;margin-bottom:6px;">File <span style="font-size:11px;font-weight:400;color:#888;">(PDF, DOC, DOCX, XLS, XLSX, PNG, JPG)</span></label>
+                <div id="ftDropZone"
+                    onclick="document.getElementById('ftFileInput').click()"
+                    ondragover="ftDragOver(event)"
+                    ondragleave="ftDragLeave()"
+                    ondrop="ftDrop(event)"
+                    style="border:2px dashed #c0b8e0;border-radius:10px;padding:28px 20px;background:#faf9ff;cursor:pointer;text-align:center;transition:all 0.2s;">
+                    <input type="file" id="ftFileInput" style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" onchange="ftFileSelected(this)">
+
+                    <!-- Default content -->
+                    <div id="ftDropContent">
+                        <div style="font-size:32px;margin-bottom:8px;">📁</div>
+                        <div style="font-size:14px;font-weight:600;color:var(--dark-navy);margin-bottom:4px;">Drag & drop a file here</div>
+                        <div style="font-size:12px;color:#888;">or click to browse</div>
+                    </div>
+
+                    <!-- File preview (shown after selection) -->
+                    <div id="ftFilePreview" style="display:none;align-items:center;gap:12px;justify-content:center;">
+                        <span id="ftFileIcon" style="font-size:28px;"></span>
+                        <div style="text-align:left;">
+                            <div id="ftFileName" style="font-size:13px;font-weight:600;color:var(--dark-navy);"></div>
+                            <div id="ftFileSize" style="font-size:11px;color:#888;"></div>
+                        </div>
+                        <button onclick="ftClearFile(event)" style="background:none;border:none;color:#dc3545;font-size:18px;cursor:pointer;margin-left:8px;" title="Remove file">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error -->
+            <p id="ftError" style="color:#dc3545;font-size:12px;min-height:16px;margin-bottom:8px;"></p>
+
+            <!-- Actions -->
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;">
+                <button onclick="closeFTModal()" style="padding:11px 28px;background:#f0f0f0;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;cursor:pointer;color:var(--dark-navy);">Cancel</button>
+                <button id="ftSaveBtn" onclick="saveFTModal()" style="padding:11px 32px;background:var(--dark-navy);color:var(--gold);border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 </div><!-- end .dashboard -->
 
 <script>
