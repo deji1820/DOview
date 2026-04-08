@@ -2813,11 +2813,26 @@ function filterDashboardTable(query) {
 }
 
 // ── ANNOUNCEMENT EDIT ────────────────────────────────────
-function editAnnouncement() {
-  const el = document.getElementById('announcementText');
-  const current = el.textContent;
-  const val = prompt('Edit announcement:', current);
-  if (val !== null) el.textContent = val || current;
+window.editAnnouncement = async function() {
+    const el = document.getElementById('announcementText');
+    const val = await HimcModal.prompt('Edit Announcement', 'Enter announcement text:', el.textContent, 'Type announcement here…');
+    if (val !== null && val.trim()) {
+        await apiFetch(`${API_BASE}/save_announcement.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: val.trim() })
+        });
+        el.textContent = val.trim();
+    }
+};
+
+async function loadAnnouncement() {
+    try {
+        const res  = await apiFetch(`${API_BASE}/save_announcement.php`);
+        const data = await res.json();
+        const el   = document.getElementById('announcementText');
+        if (el && data.text) el.textContent = data.text;
+    } catch(err) { console.error('loadAnnouncement:', err); }
 }
 
 function prependToReferralHistory(data) {
