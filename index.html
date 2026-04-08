@@ -387,6 +387,229 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
     loadOffenseTypes();
 });
 </script>
+    <!-- ═══════════════════════════════════════════════════════════════
+     ADD VIOLATION MODAL — RESTYLE PATCH
+     Paste this block anywhere in your <head> or just before </body>
+     ═══════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Overlay backdrop ─────────────────────────────────────── */
+#addViolationModal.av-modal-overlay {
+    background: rgba(15, 12, 35, 0.60);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* ── Modal box ────────────────────────────────────────────── */
+#addViolationModal .av-modal {
+    border-radius: 18px;
+    max-width: 560px;        /* single-column, no side panel */
+    width: 94%;
+    max-height: 92vh;
+    box-shadow: 0 32px 80px rgba(15,12,35,0.40), 0 0 0 1px rgba(255,255,255,0.06);
+    animation: avSlideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes avSlideUp {
+    from { opacity: 0; transform: translateY(28px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+#addViolationModal .av-modal-header {
+    background: var(--dark-navy);
+    padding: 22px 28px;
+    border-radius: 18px 18px 0 0;
+}
+
+#addViolationModal .av-modal-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.2px;
+}
+
+#addViolationModal .av-modal-close {
+    color: rgba(212,166,80,0.75);
+    font-size: 22px;
+    transition: color 0.15s, transform 0.15s;
+}
+#addViolationModal .av-modal-close:hover {
+    color: var(--gold);
+    transform: rotate(90deg);
+}
+
+/* ── Body layout — single column, hide reference panel ───── */
+#addViolationModal .av-modal-body {
+    flex-direction: column;
+    background: #fff;
+    border-radius: 0 0 18px 18px;
+}
+
+/* Hide the right-side offense reference panel */
+#addViolationModal .av-reference-section {
+    display: none !important;
+}
+
+/* ── Form section ─────────────────────────────────────────── */
+#addViolationModal .av-form-section {
+    border-right: none;
+    padding: 28px 32px 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ── Row layout ───────────────────────────────────────────── */
+#addViolationModal .av-form-row {
+    grid-template-columns: 120px 1fr;
+    align-items: flex-start;
+    gap: 0 18px;
+    margin-bottom: 20px;
+}
+
+#addViolationModal .av-form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark-navy);
+    padding-top: 11px;      /* align with input top */
+    letter-spacing: 0.1px;
+}
+
+/* ── Inputs & selects ─────────────────────────────────────── */
+#addViolationModal .av-form-input,
+#addViolationModal .av-form-select,
+#addViolationModal .av-form-textarea {
+    background: #f0eff5;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 11px 15px;
+    font-size: 14px;
+    color: var(--dark-navy);
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    box-shadow: none;
+}
+
+#addViolationModal .av-form-input::placeholder,
+#addViolationModal .av-form-textarea::placeholder {
+    color: #b0aabf;
+    font-style: normal;
+}
+
+#addViolationModal .av-form-input:focus,
+#addViolationModal .av-form-select:focus,
+#addViolationModal .av-form-textarea:focus {
+    outline: none;
+    border-color: var(--navy);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(45,37,80,0.08);
+}
+
+/* Select arrow stays visible on the new bg */
+#addViolationModal .av-form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%232d2550' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 11px;
+    background-color: #f0eff5;
+}
+#addViolationModal .av-form-select:focus {
+    background-color: #fff;
+}
+
+/* Textarea */
+#addViolationModal .av-form-textarea {
+    min-height: 88px;
+    resize: vertical;
+    font-style: normal;
+    line-height: 1.5;
+}
+
+/* ── Student lookup box ───────────────────────────────────── */
+#addViolationModal .av-student-lookup-box {
+    margin-top: 7px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+/* ── Reporter typeahead ───────────────────────────────────── */
+#addViolationModal .av-reporter-input {
+    background: #f0eff5;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 11px 15px;
+    font-size: 14px;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+#addViolationModal .av-reporter-input:focus {
+    outline: none;
+    border-color: var(--navy);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(45,37,80,0.08);
+}
+#addViolationModal .av-reporter-dropdown {
+    border: 2px solid #e0dde8;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 8px 20px rgba(45,37,80,0.10);
+}
+#addViolationModal .av-reporter-option {
+    font-size: 13px;
+    padding: 10px 15px;
+    color: var(--dark-navy);
+}
+#addViolationModal .av-reporter-option:hover {
+    background: #f0eff5;
+}
+
+/* ── Form actions (submit row) ────────────────────────────── */
+#addViolationModal .av-form-actions {
+    margin-top: 6px;
+    padding-top: 4px;
+    gap: 6px;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#addViolationModal .av-form-error {
+    text-align: left;
+    flex: 1;
+}
+
+/* ── Submit button ────────────────────────────────────────── */
+#addViolationModal .av-submit-btn {
+    background: var(--dark-navy);
+    color: var(--gold);
+    border-radius: 10px;
+    padding: 12px 44px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(30,24,56,0.18);
+}
+#addViolationModal .av-submit-btn:hover:not(:disabled) {
+    background: #16122e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(30,24,56,0.28);
+}
+#addViolationModal .av-submit-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(30,24,56,0.18);
+}
+#addViolationModal .av-submit-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ── Divider between sections (if any siblings exist) ─────── */
+#addViolationModal .av-form-section {
+    border-right: none;
+}
+
+/* ── Thin scrollbar inside form section ──────────────────── */
+#addViolationModal .av-form-section::-webkit-scrollbar { width: 4px; }
+#addViolationModal .av-form-section::-webkit-scrollbar-thumb { background: #d4c8f0; border-radius: 4px; }
+</style>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -1887,6 +2110,247 @@ function navigateToDocumentSubmission() {
     updateTopBar('📄', 'Document Submission', '');
     loadDocumentSubmissions();
 }
+
+let ftSelectedFile  = null;
+let ftTemplatesData = [];
+ 
+// ── Open modal ───────────────────────────────────────────────
+window.openFTModal = function(templateId) {
+    document.getElementById('ftTemplateId').value  = '';
+    document.getElementById('ftName').value        = '';
+    document.getElementById('ftDescription').value = '';
+    document.getElementById('ftError').textContent = '';
+    document.getElementById('ftModalTitle').textContent = 'Upload Template';
+    ftClearFileState();
+    document.getElementById('ftExistingFile').style.display = 'none';
+ 
+    if (templateId) {
+        const t = ftTemplatesData.find(x => String(x.template_id) === String(templateId));
+        if (t) {
+            document.getElementById('ftTemplateId').value  = t.template_id;
+            document.getElementById('ftName').value        = t.template_name  || '';
+            document.getElementById('ftDescription').value = t.description    || '';
+            document.getElementById('ftModalTitle').textContent = 'Edit Template';
+            if (t.file_path) {
+                const raw = t.file_path.split('/').pop();
+                // Strip leading timestamp prefix if present (e.g. 1234567890_filename.pdf)
+                const fname = raw.replace(/^\d+_/, '');
+                document.getElementById('ftExistingFileName').textContent = fname;
+                document.getElementById('ftExistingFile').style.display   = 'flex';
+            }
+        }
+    }
+ 
+    document.getElementById('ftModalOverlay').classList.remove('hidden');
+    setTimeout(() => document.getElementById('ftName').focus(), 120);
+};
+ 
+window.closeFTModal = function() {
+    document.getElementById('ftModalOverlay').classList.add('hidden');
+    ftClearFileState();
+};
+ 
+// Close on overlay click
+document.getElementById('ftModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeFTModal();
+});
+ 
+// ── File state ───────────────────────────────────────────────
+function ftClearFileState() {
+    ftSelectedFile = null;
+    const fi = document.getElementById('ftFileInput');
+    if (fi) fi.value = '';
+    document.getElementById('ftDropContent').style.display  = '';
+    document.getElementById('ftFilePreview').style.display  = 'none';
+}
+ 
+window.ftClearFile = function(e) {
+    e.stopPropagation();
+    ftClearFileState();
+};
+ 
+window.ftFileSelected = function(input) {
+    if (!input.files || !input.files[0]) return;
+    ftSelectedFile = input.files[0];
+    ftShowFilePreview(ftSelectedFile);
+};
+ 
+function ftShowFilePreview(file) {
+    const icons = { pdf:'📕', doc:'📝', docx:'📝', xls:'📗', xlsx:'📗', png:'🖼️', jpg:'🖼️', jpeg:'🖼️' };
+    const ext   = file.name.split('.').pop().toLowerCase();
+    document.getElementById('ftFileIcon').textContent = icons[ext] || '📎';
+    document.getElementById('ftFileName').textContent = file.name;
+    document.getElementById('ftFileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('ftDropContent').style.display = 'none';
+    document.getElementById('ftFilePreview').style.display = 'flex';
+}
+ 
+window.ftDragOver = function(e) {
+    e.preventDefault();
+    document.getElementById('ftDropZone').style.cssText += ';border-color:var(--navy);background:#f0eeff;';
+};
+window.ftDragLeave = function() {
+    document.getElementById('ftDropZone').style.borderColor = '#c0b8e0';
+    document.getElementById('ftDropZone').style.background  = '#faf9ff';
+};
+window.ftDrop = function(e) {
+    e.preventDefault();
+    ftDragLeave();
+    const file = e.dataTransfer && e.dataTransfer.files[0];
+    if (!file) return;
+    const allowed = ['pdf','doc','docx','xls','xlsx','png','jpg','jpeg'];
+    const ext     = file.name.split('.').pop().toLowerCase();
+    if (!allowed.includes(ext)) { document.getElementById('ftError').textContent = 'File type not allowed.'; return; }
+    ftSelectedFile = file;
+    try { const dt = new DataTransfer(); dt.items.add(file); document.getElementById('ftFileInput').files = dt.files; } catch(err){}
+    ftShowFilePreview(file);
+};
+ 
+// ── Save ─────────────────────────────────────────────────────
+window.saveFTModal = async function() {
+    const errEl   = document.getElementById('ftError');
+    const saveBtn = document.getElementById('ftSaveBtn');
+    errEl.textContent = '';
+ 
+    const name = document.getElementById('ftName').value.trim();
+    const desc = document.getElementById('ftDescription').value.trim();
+    const tid  = document.getElementById('ftTemplateId').value;
+ 
+    if (!name) { errEl.textContent = 'Form name is required.'; return; }
+ 
+    saveBtn.disabled    = true;
+    saveBtn.textContent = 'Saving…';
+ 
+    try {
+        const fd = new FormData();
+        fd.append('template_name', name);
+        fd.append('description',   desc);
+        if (tid)            fd.append('template_id',   tid);
+        if (ftSelectedFile) fd.append('template_file', ftSelectedFile);
+ 
+        const res  = await apiFetch(`${API_BASE}/save_form_template.php`, { method: 'POST', body: fd });
+        const data = await res.json();
+ 
+        if (data.success) {
+            // Sync local cache
+            if (tid) {
+                const idx = ftTemplatesData.findIndex(t => String(t.template_id) === String(tid));
+                if (idx > -1) ftTemplatesData[idx] = data.template;
+                else ftTemplatesData.unshift(data.template);
+            } else {
+                ftTemplatesData.unshift(data.template);
+            }
+            closeFTModal();
+            renderFTTable(ftTemplatesData);
+            HimcModal.info('Saved', tid ? 'Template updated successfully.' : 'Template uploaded successfully.');
+        } else {
+            errEl.textContent = data.message || 'Failed to save.';
+        }
+    } catch(err) {
+        console.error('saveFTModal:', err);
+        errEl.textContent = 'Network error. Please try again.';
+    } finally {
+        saveBtn.disabled    = false;
+        saveBtn.textContent = 'Save';
+    }
+};
+ 
+// ── Load & Render ─────────────────────────────────────────────
+window.loadFormTemplates = async function() {
+    const tbody = document.querySelector('.form-templates-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr>`;
+ 
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_form_templates.php`);
+        const data = await res.json();
+        ftTemplatesData = (data.success && data.templates) ? data.templates : [];
+        renderFTTable(ftTemplatesData);
+    } catch(err) {
+        console.error('loadFormTemplates:', err);
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#dc3545;padding:30px;">Failed to load templates.</td></tr>`;
+    }
+};
+ 
+function renderFTTable(templates) {
+    const tbody = document.querySelector('.form-templates-table tbody');
+    if (!tbody) return;
+ 
+    if (!templates.length) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:30px;">No templates yet. Click "Upload Template" to add one.</td></tr>`;
+        return;
+    }
+ 
+    tbody.innerHTML = templates.map(t => {
+        const rawDate  = t.updated_at || t.last_updated || t.created_at || '';
+        const dateDisp = rawDate
+            ? new Date(rawDate).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })
+            : '—';
+        const fileTag  = t.file_path
+            ? `<a href="${API_BASE}/${escHtml(t.file_path)}" target="_blank"
+                  style="font-size:11px;color:#6c5fa6;text-decoration:underline;">
+                  📎 ${escHtml(t.file_path.split('/').pop().replace(/^\d+_/, ''))}
+               </a>`
+            : '<span style="font-size:11px;color:#bbb;">No file attached</span>';
+ 
+        return `<tr>
+            <td style="padding:16px 15px;font-weight:500;">${escHtml(t.template_name)}</td>
+            <td style="padding:16px 15px;">
+                <div>${escHtml(t.description || '—')}</div>
+                <div style="margin-top:5px;">${fileTag}</div>
+            </td>
+            <td style="padding:16px 15px;">${dateDisp}</td>
+            <td style="padding:16px 15px;text-align:center;">
+                <a href="#" class="action-link"
+                   onclick="openFTModal('${t.template_id}');return false;">Edit</a>
+            </td>
+        </tr>`;
+    }).join('');
+ 
+    // Re-wire search filter
+    ftApplySearch();
+}
+ 
+// ── Search ───────────────────────────────────────────────────
+function ftApplySearch() {
+    const input = document.getElementById('templateSearch');
+    if (!input || input._ftWired) return;
+    input._ftWired = true;
+    input.addEventListener('input', function() {
+        const q = this.value.toLowerCase();
+        renderFTTable(q
+            ? ftTemplatesData.filter(t =>
+                (t.template_name||'').toLowerCase().includes(q) ||
+                (t.description||'').toLowerCase().includes(q))
+            : ftTemplatesData
+        );
+    });
+}
+ 
+// ── Patch navigateToFormTemplates ────────────────────────────
+const _origNavFormTemplates = window.navigateToFormTemplates;
+window.navigateToFormTemplates = function() {
+    _origNavFormTemplates && _origNavFormTemplates();
+    loadFormTemplates();
+};
+ 
+// ── Wire buttons on DOMContentLoaded ─────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // Upload Template button
+    document.querySelectorAll('.btn-upload-template').forEach(btn => {
+        btn.onclick = () => openFTModal();
+    });
+    // Update button — hint to use Edit link
+    document.querySelectorAll('.btn-update-template').forEach(btn => {
+        btn.onclick = () => HimcModal.info('Tip', 'To update a template, click the "Edit" link in the Action column of that template row.');
+    });
+    // If page is already on Form Templates, load immediately
+    if (document.getElementById('formTemplatesPage') &&
+        !document.getElementById('formTemplatesPage').classList.contains('hidden')) {
+        loadFormTemplates();
+    }
+});
+
 function navigateToDocumentRequest() {
     hideAllPages();
     document.getElementById('documentRequestPage').classList.remove('hidden');
