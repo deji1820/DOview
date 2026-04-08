@@ -2297,7 +2297,7 @@ window.saveFTModal = async function() {
         if (tid)            fd.append('template_id',   tid);
         if (ftSelectedFile) fd.append('template_file', ftSelectedFile);
  
-        const res  = await apiFetch(`${API_BASE}/save_form_template.php`, { method: 'POST', body: fd });
+        const res  = await apiFetch(`${API_BASE}/save_form_templates.php`, { method: 'POST', body: fd });
         const data = await res.json();
  
         if (data.success) {
