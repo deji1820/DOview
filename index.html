@@ -1764,6 +1764,7 @@ function showDashboard() {
   updateActiveNav(0);
   loadDashboardStats();
   loadDashboardRecent();
+  loadAnnouncement();  
   setMaxDates();
 }
 
@@ -3270,7 +3271,18 @@ window.openOffenseRecordModal = function(){
 window.editAnnouncement = async function(){
     const el = document.getElementById('announcementText');
     const val = await HimcModal.prompt('Edit Announcement','Enter announcement text:',el.textContent,'Type announcement here…');
-    if(val!==null) el.textContent = val||el.textContent;
+    if(val !== null && val.trim()) {
+        try {
+            await apiFetch(`${API_BASE}/save_announcement.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: val.trim() })
+            });
+            el.textContent = val.trim();
+        } catch(err) {
+            HimcModal.info('Error', 'Failed to save announcement. Please try again.');
+        }
+    }
 };
 
 // 10. printIssuanceDocument — was: alert()
