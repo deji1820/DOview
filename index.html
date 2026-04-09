@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ── Modal box ────────────────────────────────────────────── */
 #addViolationModal .av-modal {
     border-radius: 18px;
-    max-width: 560px;        /* single-column, no side panel */
+    max-width: 900px;   /* restore original width */
     width: 94%;
     max-height: 92vh;
     box-shadow: 0 32px 80px rgba(15,12,35,0.40), 0 0 0 1px rgba(255,255,255,0.06);
@@ -376,8 +376,10 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 /* Hide the right-side offense reference panel */
-#addViolationModal .av-reference-section {
-    display: none !important;
+#addViolationModal .av-modal-body {
+    flex-direction: row;   /* was changed to column */
+    background: #fff;
+    border-radius: 0 0 18px 18px;
 }
 
 /* ── Form section ─────────────────────────────────────────── */
