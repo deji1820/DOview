@@ -1651,7 +1651,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div id="newReferralForm" class="new-referral-form hidden">
                     <h2 class="form-title">New Referral</h2>
-                    <form id="referralForm">
+                    <form id="referralForm" onsubmit="return false;">
                         <div class="referral-form-row">
     <label class="referral-form-label">Student ID:</label>
     <div style="width:100%;">
@@ -2432,6 +2432,51 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('formTemplatesPage') &&
         !document.getElementById('formTemplatesPage').classList.contains('hidden')) {
         loadFormTemplates();
+    }
+
+    // Wire referral form — exactly once
+    const rf = document.getElementById('referralForm');
+    if (rf && !rf._patched) {
+        rf._patched = true;
+        rf.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const sendBtn = this.querySelector('.btn-send');
+            const studentNumber = document.getElementById('referralStudentNumber').value;
+            const dateSent = document.querySelector('#referralForm input[type="date"]').value;
+            const remarks  = this.querySelector('textarea').value.trim();
+            const offenseRecord = document.getElementById('referralOffenseRecord').value;
+            const lb = document.getElementById('referral-student-lookup-box');
+            if (!studentNumber || !lb.innerHTML.includes('✓')) {
+                HimcModal.info('Invalid Student', 'Please enter a valid Student ID and wait for it to be confirmed.');
+                return;
+            }
+            sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+            try {
+                const res  = await apiFetch(`${API_BASE}/add_referral.php`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_number:studentNumber,date_sent:dateSent,remarks,offense_record:offenseRecord})});
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('referralSentModal').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('referralSentModal').classList.add('hidden');
+                        document.getElementById('newReferralForm').classList.add('hidden');
+                        document.getElementById('referralHistory').style.display = 'block';
+                    }, 2000);
+                    prependToReferralHistory({name:data.student_name,grade:data.grade,section:data.section,remarks:data.remarks,date_sent:data.date_sent});
+                    this.reset();
+                    document.getElementById('referralGradeSelect').value = '';
+                    document.getElementById('referralSectionSelect').value = '';
+                    document.getElementById('referralOffenseRecord').value = '';
+                    document.getElementById('referralStudentNumber').value = '';
+                    document.getElementById('offenseRecordModalContent').innerHTML = '<div style="text-align:center;color:#aaa;padding:40px;">Select a student to view their offense record.</div>';
+                } else {
+                    HimcModal.info('Error', data.message || 'Failed to send referral.');
+                }
+            } catch {
+                HimcModal.info('Network Error', 'Could not connect. Please try again.');
+            } finally {
+                sendBtn.disabled = false; sendBtn.textContent = 'Send';
+            }
+        });
     }
 });
 
@@ -4006,45 +4051,57 @@ window.updateDocStatus = async function(documentId, newStatus, linkEl){
 
 // 13. Referral form — was: alert() for validation + network errors
 // Re-wire the referral form submit to use HimcModal instead of alert()
-document.addEventListener('DOMContentLoaded', function(){
-    const rf = document.getElementById('referralForm');
-    if(!rf || rf._patched) return;
-    rf._patched = true;
-    rf.addEventListener('submit', async function(e){
-        e.preventDefault();
-        const sendBtn = this.querySelector('.btn-send');
-        const studentNumber = document.getElementById('referralStudentNumber').value;
-        const dateSent = document.querySelector('#referralForm input[type="date"]').value;
-        const remarks  = this.querySelector('textarea').value.trim();
-        const offenseRecord = document.getElementById('referralOffenseRecord').value;
-        const lb = document.getElementById('referral-student-lookup-box');
-        if(!studentNumber || !lb.innerHTML.includes('✓')){
-            HimcModal.info('Invalid Student','Please enter a valid Student ID and wait for it to be confirmed.');
-            return;
-        }
-        sendBtn.disabled=true; sendBtn.textContent='Sending…';
-        try {
-            const res  = await apiFetch(`${API_BASE}/add_referral.php`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_number:studentNumber,date_sent:dateSent,remarks,offense_record:offenseRecord})});
-            const data = await res.json();
-            if(data.success){
-                document.getElementById('referralSentModal').classList.remove('hidden');
-                setTimeout(()=>{
-                    document.getElementById('referralSentModal').classList.add('hidden');
-                    document.getElementById('newReferralForm').classList.add('hidden');
-                    document.getElementById('referralHistory').style.display='block';
-                },2000);
-                prependToReferralHistory({name:data.student_name,grade:data.grade,section:data.section,remarks:data.remarks,date_sent:data.date_sent});
-                this.reset();
-                document.getElementById('referralGradeSelect').value='';
-                document.getElementById('referralSectionSelect').value='';
-                document.getElementById('referralOffenseRecord').value='';
-                document.getElementById('referralStudentNumber').value='';
-                document.getElementById('offenseRecordModalContent').innerHTML='<div style="text-align:center;color:#aaa;padding:40px;">Select a student to view their offense record.</div>';
-            } else { HimcModal.info('Error', data.message||'Failed to send referral.'); }
-        } catch { HimcModal.info('Network Error','Could not connect. Please try again.'); }
-        finally { sendBtn.disabled=false; sendBtn.textContent='Send'; }
-    });
-});
+(function() {
+    function attachReferralHandler() {
+        const rf = document.getElementById('referralForm');
+        if (!rf || rf._patched) return;
+        rf._patched = true;
+        rf.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const sendBtn = this.querySelector('.btn-send');
+            const studentNumber = document.getElementById('referralStudentNumber').value;
+            const dateSent = document.querySelector('#referralForm input[type="date"]').value;
+            const remarks  = this.querySelector('textarea').value.trim();
+            const offenseRecord = document.getElementById('referralOffenseRecord').value;
+            const lb = document.getElementById('referral-student-lookup-box');
+            if (!studentNumber || !lb.innerHTML.includes('✓')) {
+                HimcModal.info('Invalid Student', 'Please enter a valid Student ID and wait for it to be confirmed.');
+                return;
+            }
+            sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+            try {
+                const res  = await apiFetch(`${API_BASE}/add_referral.php`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_number:studentNumber,date_sent:dateSent,remarks,offense_record:offenseRecord})});
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('referralSentModal').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('referralSentModal').classList.add('hidden');
+                        document.getElementById('newReferralForm').classList.add('hidden');
+                        document.getElementById('referralHistory').style.display = 'block';
+                    }, 2000);
+                    prependToReferralHistory({name:data.student_name,grade:data.grade,section:data.section,remarks:data.remarks,date_sent:data.date_sent});
+                    this.reset();
+                    document.getElementById('referralGradeSelect').value = '';
+                    document.getElementById('referralSectionSelect').value = '';
+                    document.getElementById('referralOffenseRecord').value = '';
+                    document.getElementById('referralStudentNumber').value = '';
+                    document.getElementById('offenseRecordModalContent').innerHTML = '<div style="text-align:center;color:#aaa;padding:40px;">Select a student to view their offense record.</div>';
+                } else {
+                    HimcModal.info('Error', data.message || 'Failed to send referral.');
+                }
+            } catch {
+                HimcModal.info('Network Error', 'Could not connect. Please try again.');
+            } finally {
+                sendBtn.disabled = false; sendBtn.textContent = 'Send';
+            }
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', attachReferralHandler);
+    } else {
+        attachReferralHandler();
+    }
+})();
 
 // 14. Patch renderDMLevel to wire Edit buttons on penalty rows
 // 14. Patch renderDMLevel — fixes penalty Edit buttons + exposes data to window
