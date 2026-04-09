@@ -1788,15 +1788,20 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
         <div id="documentIssuancePage" class="document-history-page hidden">
             <button class="back-button" onclick="backToDocuments()"><div class="back-icon">←</div><span>Document Issuance</span></button>
             <div class="history-container">
-                <div class="document-issuance-form-container">
-                    <form id="documentIssuanceForm">
-                        <div class="issuance-form-row"><label class="issuance-form-label">Select Document to Issue:</label><select id="documentTypeSelect" class="issuance-form-select" onchange="updateIssuanceForm()" required><option value="">Select Document Type</option><option value="temporary-slip">Temporary Slip</option><option value="call-slip">Call Slip</option><option value="admit-slip">Admit Slip</option><option value="off-campus-permit">Off Campus Permit</option></select></div>
-                        <div class="issuance-form-row"><label class="issuance-form-label">Date:</label><input type="date" id="issuanceDate" class="issuance-form-input" required></div>
-                        <div class="issuance-form-row"><label class="issuance-form-label">Name:</label><input type="text" id="issuanceName" class="issuance-form-input" placeholder="Enter student name" required></div>
-                        <div class="issuance-form-row"><label class="issuance-form-label">Grade & Section:</label><input type="text" id="issuanceGradeSection" class="issuance-form-input" placeholder="e.g., 10 - St. Xavier" required></div>
-                        <div id="dynamicFieldsContainer"></div>
-                        <div class="issuance-form-actions"><button type="button" class="btn-print-issuance" onclick="printIssuanceDocument()">Print</button></div>
-                    </form>
+                <div style="background:#fff;border-radius:8px;overflow-x:auto;">
+                    <table class="history-table document-submission-table">
+                        <thead>
+                            <tr>
+                                <th>Form Name</th>
+                                <th>Description</th>
+                                <th>Last Updated</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-issuance-templates">
+                            <tr><td colspan="4" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -1951,6 +1956,14 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
             <div style="margin-bottom:18px;">
                 <label style="font-size:13px;font-weight:600;color:var(--dark-navy);display:block;margin-bottom:6px;">Description</label>
                 <textarea id="ftDescription" class="av-form-textarea" placeholder="Brief description of this template…" style="width:100%;box-sizing:border-box;min-height:72px;font-style:normal;"></textarea>
+            </div>
+            <!-- Appears In -->
+            <div style="margin-bottom:18px;">
+                <label style="font-size:13px;font-weight:600;color:var(--dark-navy);display:block;margin-bottom:6px;">Appears In <span style="color:#dc3545;">*</span></label>
+                <select id="ftAppearsIn" class="av-form-select" style="width:100%;box-sizing:border-box;background:#f0eff5;">
+                    <option value="document_request">Document Requests</option>
+                    <option value="document_issuance">Document Issuance</option>
+                </select>
             </div>
 
             <!-- Existing file (edit mode) -->
@@ -2199,6 +2212,7 @@ window.openFTModal = function(templateId) {
             document.getElementById('ftTemplateId').value  = t.template_id;
             document.getElementById('ftName').value        = t.template_name  || '';
             document.getElementById('ftDescription').value = t.description    || '';
+            document.getElementById('ftAppearsIn').value   = t.appears_in     || 'document_request';
             document.getElementById('ftModalTitle').textContent = 'Edit Template';
             if (t.file_path) {
                 const raw = t.file_path.split('/').pop();
@@ -2294,6 +2308,7 @@ window.saveFTModal = async function() {
         const fd = new FormData();
         fd.append('template_name', name);
         fd.append('description',   desc);
+        fd.append('appears_in', document.getElementById('ftAppearsIn').value);
         if (tid)            fd.append('template_id',   tid);
         if (ftSelectedFile) fd.append('template_file', ftSelectedFile);
  
@@ -2426,7 +2441,55 @@ function navigateToDocumentRequest() {
     updateActiveNav(2);
     updateTopBar('📄', 'Document Request', '');
     loadDocumentRequests();
-}function navigateToDocumentIssuance() { hideAllPages(); document.getElementById('documentIssuancePage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Document Issuance',''); }
+}
+function navigateToDocumentIssuance() {
+    hideAllPages();
+    document.getElementById('documentIssuancePage').classList.remove('hidden');
+    updateActiveNav(2);
+    updateTopBar('📄','Document Issuance','');
+    loadIssuanceTemplates();
+}
+
+async function loadIssuanceTemplates() {
+    const tbody = document.getElementById('tbody-issuance-templates');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr>`;
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_form_templates.php`);
+        const data = await res.json();
+        const templates = (data.success && data.templates)
+            ? data.templates.filter(t => t.appears_in === 'document_issuance')
+            : [];
+        if (!templates.length) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:30px;">No issuance templates yet. Upload one in Form Templates and set "Appears In" to Document Issuance.</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = templates.map(t => {
+            const rawDate  = t.updated_at || t.created_at || '';
+            const dateDisp = rawDate
+                ? new Date(rawDate).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})
+                : '—';
+            const printUrl = t.file_path ? `${API_BASE}/${escHtml(t.file_path)}` : null;
+            return `<tr>
+                <td style="font-weight:500;">${escHtml(t.template_name)}</td>
+                <td>${escHtml(t.description || '—')}</td>
+                <td>${dateDisp}</td>
+                <td>${printUrl
+                    ? `<a href="${printUrl}" target="_blank" class="action-link" onclick="triggerPrint('${printUrl}');return false;">Print</a>`
+                    : '<span style="color:#aaa;font-size:12px;">No file</span>'
+                }</td>
+            </tr>`;
+        }).join('');
+    } catch(err) {
+        console.error('loadIssuanceTemplates:', err);
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#dc3545;padding:30px;">Failed to load.</td></tr>`;
+    }
+}
+
+function triggerPrint(url) {
+    const win = window.open(url, '_blank');
+    if (win) win.onload = () => { try { win.print(); } catch(e) {} };
+}
 function navigateToFormTemplates() { hideAllPages(); document.getElementById('formTemplatesPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Form Templates',''); }
 function backToOffenseManagement() { hideAllPages(); document.getElementById('offenseManagementPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📁','Offense Management',''); }
 function backToDocuments() { hideAllPages(); document.getElementById('documentsPage').classList.remove('hidden'); updateActiveNav(2); updateTopBar('📄','Documents',''); }
