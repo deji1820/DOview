@@ -1424,16 +1424,32 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
                 </div>
             </div>
             <div class="user-section">
-                <div class="notification-icon">🔔</div>
-                <div class="user-info">
-                    <div class="user-avatar">👤</div>
-                    <div class="user-details">
-                        <div class="user-name">Admin 1</div>
-                        <div class="user-email">admin.himc.edu.ph</div>
+                    <div class="notification-icon">🔔</div>
+                    <div class="user-info" onclick="toggleAdminDropdown()" style="position:relative;">
+                        <div class="user-avatar">👤</div>
+                        <div class="user-details">
+                            <div class="user-name">Admin 1</div>
+                            <div class="user-email">admin.himc.edu.ph</div>
+                        </div>
+                        <span class="dropdown-arrow">▼</span>
+
+                        <div id="adminDropdown" style="
+                            display:none;position:absolute;top:calc(100% + 10px);right:0;
+                            background:#fff;border-radius:10px;min-width:220px;
+                            box-shadow:0 4px 24px rgba(0,0,0,0.15);z-index:9999;overflow:hidden;">
+                            <div style="padding:15px 18px;border-bottom:1px solid #eee;">
+                                <div style="font-size:15px;font-weight:700;color:#1e1838;">Admin 1</div>
+                                <div style="font-size:12px;color:#888;margin-top:2px;">admin.himc.edu.ph</div>
+                            </div>
+                            <div onclick="adminLogout()" style="
+                                padding:13px 18px;font-size:14px;color:#dc3545;
+                                display:flex;align-items:center;gap:10px;cursor:pointer;
+                                transition:background 0.2s;">
+                                <span>🚪</span> Logout
+                            </div>
+                        </div>
                     </div>
-                    <span class="dropdown-arrow">▼</span>
                 </div>
-            </div>
         </div>
 
         <!-- ── HOME ─────────────────────────────────────────── -->
@@ -2037,6 +2053,25 @@ function hideAllPages() {
     ].forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); });
 }
 
+function toggleAdminDropdown() {
+    const dd = document.getElementById('adminDropdown');
+    if (dd) dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+}
+
+function adminLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = 'https://login-topaz-iota.vercel.app/';
+    }
+}
+
+document.addEventListener('click', function(e) {
+    const dd   = document.getElementById('adminDropdown');
+    const info = document.querySelector('.user-info');
+    if (dd && info && !info.contains(e.target)) {
+        dd.style.display = 'none';
+    }
+});
+    
 function updateTopBar(icon, title, subtitle) {
     document.getElementById('pageIcon').textContent = icon;
     document.getElementById('pageTitle').textContent = title;
