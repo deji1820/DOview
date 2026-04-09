@@ -1812,7 +1812,7 @@ if (!studentNumber || !lb.innerHTML.includes('✓')) {
             <div class="history-container">
                 <div class="form-templates-actions"><button class="btn-upload-template">Upload Template</button><button class="btn-update-template">Update</button></div>
                 <div class="form-templates-search-bar"><div class="search-wrapper"><span class="search-icon">🔍</span><input type="text" id="templateSearch" class="form-template-search-input" placeholder="Search"></div><select class="form-template-filter"><option>Filter by</option><option>Date Added</option><option>Template Type</option></select></div>
-                <div class="form-templates-table-wrapper"><table class="form-templates-table"><thead><tr><th>Form Name</th><th>Description</th><th>Last Update</th><th>Action</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+                <div class="form-templates-table-wrapper"><table class="form-templates-table"><thead><tr><th>Form Name</th><th>Description</th><th>Appears In</th><th>Last Update</th><th>Action</th></tr></thead>
             </div>
         </div>
 
@@ -2377,16 +2377,24 @@ function renderFTTable(templates) {
                </a>`
             : '<span style="font-size:11px;color:#bbb;">No file attached</span>';
  
+        const appearsLabel = t.appears_in === 'document_issuance'
+            ? `<span style="background:#1e1838;color:#f5c563;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;">Doc Issuance</span>`
+            : `<span style="background:#e8f4e8;color:#276749;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;">Doc Request</span>`;
+
         return `<tr>
             <td style="padding:16px 15px;font-weight:500;">${escHtml(t.template_name)}</td>
             <td style="padding:16px 15px;">
                 <div>${escHtml(t.description || '—')}</div>
                 <div style="margin-top:5px;">${fileTag}</div>
             </td>
+            <td style="padding:16px 15px;text-align:center;">${appearsLabel}</td>
             <td style="padding:16px 15px;">${dateDisp}</td>
             <td style="padding:16px 15px;text-align:center;">
                 <a href="#" class="action-link"
                    onclick="openFTModal('${t.template_id}');return false;">Edit</a>
+                &nbsp;/&nbsp;
+                <a href="#" class="action-link" style="color:#dc3545;"
+                   onclick="deleteFTTemplate('${t.template_id}');return false;">Delete</a>
             </td>
         </tr>`;
     }).join('');
@@ -2394,6 +2402,33 @@ function renderFTTable(templates) {
     // Re-wire search filter
     ftApplySearch();
 }
+
+window.deleteFTTemplate = async function(templateId) {
+    const ok = await HimcModal.confirm(
+        'Delete Template',
+        'Are you sure you want to delete this template? This cannot be undone.',
+        'Delete'
+    );
+    if (!ok) return;
+
+    try {
+        const res  = await apiFetch(`${API_BASE}/delete_form_template.php`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ template_id: templateId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            ftTemplatesData = ftTemplatesData.filter(t => String(t.template_id) !== String(templateId));
+            renderFTTable(ftTemplatesData);
+            HimcModal.info('Deleted', 'Template has been removed.');
+        } else {
+            HimcModal.info('Error', data.message || 'Failed to delete template.');
+        }
+    } catch(err) {
+        HimcModal.info('Network Error', 'Could not connect. Please try again.');
+    }
+};
  
 // ── Search ───────────────────────────────────────────────────
 function ftApplySearch() {
