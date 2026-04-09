@@ -1989,9 +1989,9 @@ function toggleAdminDropdown() {
 }
 
 function adminLogout() {
-    if (confirm('Are you sure you want to logout?')) {
-        window.location.href = 'https://login-topaz-iota.vercel.app/';
-    }
+    HimcModal.confirm('Logout', 'Are you sure you want to logout?', 'Logout').then(ok => {
+        if (ok) window.location.href = 'https://login-topaz-iota.vercel.app/';
+    });
 }
 
 document.addEventListener('click', function(e) {
@@ -2142,11 +2142,11 @@ async function updateRequestStatus(requestId, newStatus, linkEl) {
             statusCell.className   = 'status-cell ' + (newStatus === 'Approved' ? 'status-approved' : 'status-returned');
             actionCell.innerHTML   = `<span class="status-cell ${newStatus === 'Approved' ? 'status-approved' : 'status-returned'}">${newStatus}</span>`;
         } else {
-            alert(data.message || 'Failed to update status.');
+            HimcModal.info('Error', data.message || 'Failed to update status.');
         }
     } catch (err) {
         console.error('updateRequestStatus:', err);
-        alert('Network error. Please try again.');
+        HimcModal.info('Network Error', 'Could not connect. Please try again.');
     }
 }
     
@@ -2973,7 +2973,7 @@ function initGMRCFilters() {
 function openOffenseRecordModal() {
     const num = document.getElementById('referralStudentNumber').value.trim();
     if (!num) {
-        alert('Please enter and confirm a Student ID first.');
+        HimcModal.info('No Student Selected', 'Please enter and confirm a valid Student ID first.');
         return;
     }
     document.getElementById('offenseRecordModal').classList.remove('hidden');
@@ -3085,11 +3085,11 @@ async function updateDocStatus(documentId, newStatus, linkEl) {
             statusCell.className   = 'status-cell ' + (newStatus === 'Approved' ? 'status-approved' : 'status-returned');
             actionCell.innerHTML   = '<a class="action-link" href="#">View</a>';
         } else {
-            alert(data.message || 'Failed to update status.');
+            HimcModal.info('Error', data.message || 'Failed to update status.');
         }
     } catch (err) {
         console.error('updateDocStatus:', err);
-        alert('Network error. Please try again.');
+        HimcModal.info('Network Error', 'Could not connect. Please try again.');
     }
 }
 
@@ -3250,7 +3250,8 @@ loadOffenseTypes();
 }
 
 async function deleteOffense(offenseTypeId) {
-    if (!confirm('Delete this offense type?')) return;
+    const ok = await HimcModal.confirm('Delete Offense', 'Delete this offense type?', 'Delete');
+    if (!ok) return;
     try {
         const res  = await apiFetch(`${API_BASE}/delete_offense_type.php`, {
             method:  'POST',
@@ -3263,34 +3264,18 @@ async function deleteOffense(offenseTypeId) {
             renderDMLevel(dmCurrentLevel);
             offenseTypesLoaded = false;
         } else {
-            alert(data.message || 'Failed to delete.');
+            HimcModal.info('Error', data.message || 'Failed to delete.');
         }
     } catch(err) {
-        alert('Network error.');
+        HimcModal.info('Network Error', 'Could not connect. Please try again.');
     }
 }
 
 function editOffense(id, title, desc) {
-    const newTitle = prompt('Edit offense title:', title);
-    if (!newTitle || !newTitle.trim()) return;
-    apiFetch(`${API_BASE}/update_offense_type.php`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ offense_type_id: id, title: newTitle.trim(), description: desc })
-    }).then(r => r.json()).then(data => {
-        if (data.success) {
-            const o = dmOffenseData[dmCurrentLevel].find(o => o.offense_type_id === id);
-            if (o) o.title = newTitle.trim();
-            renderDMLevel(dmCurrentLevel);
-            offenseTypesLoaded = false;
-        } else {
-            alert(data.message || 'Failed to update.');
-        }
-    }).catch(() => alert('Network error.'));
+    // Now handled by window.editOffense in HimcModal script — this is a no-op
 }
-
 function saveDMChanges() {
-    alert('Changes saved!');
+    HimcModal.info('Saved', 'Changes saved successfully.');
 }
     
 function viewOffenseManagement() { document.getElementById('successModal').classList.add('hidden'); navigateToDailyReports(); }
@@ -3320,7 +3305,7 @@ function printIssuanceDocument() {
 // ════════════════════════════════════════════════════════════
 //  GMRC REMARKS
 // ════════════════════════════════════════════════════════════
-function saveGMRCRemarks() { alert('Remarks saved successfully!'); }
+function saveGMRCRemarks() { HimcModal.info('Saved', 'Remarks saved successfully.'); }
 
 // ════════════════════════════════════════════════════════════
 //  PAGINATION
