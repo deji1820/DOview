@@ -2651,14 +2651,80 @@ async function loadStudentOffenseDetail(studentNumber) {
     }
 }
     
-    function viewStudentGMRC(name, studentNumber, grade, section) {
+    async function viewStudentGMRC(name, studentNumber, grade, section) {
     hideAllPages();
     document.getElementById('gmrcIndividualPage').classList.remove('hidden');
     document.getElementById('individualStudentName').textContent = name;
-    document.getElementById('individualStudentId').textContent = studentNumber || '—';
+    document.getElementById('individualStudentId').textContent   = studentNumber || '—';
     document.getElementById('individualGradeSection').textContent = (grade && section) ? `${grade} - ${section}` : '—';
+    document.getElementById('individualAdviser').textContent = '—';
     updateActiveNav(3);
-    updateTopBar('📖','GMRC','');
+    updateTopBar('📖', 'GMRC', '');
+
+    // Reset display
+    ['gmrc-l1','gmrc-l2','gmrc-l3','gmrc-l4'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.textContent = '—';
+    });
+    const totalEl    = document.getElementById('gmrc-total');
+    const gradeEl    = document.getElementById('gmrc-grade');
+    const statusEl   = document.getElementById('gmrc-status');
+    const demeritEl  = document.getElementById('gmrc-demerits');
+    const suspEl     = document.getElementById('gmrc-suspension');
+    const remarksEl  = document.getElementById('gmrcRemarksInput');
+    const counselTbody = document.getElementById('tbody-counseling-history');
+
+    if (totalEl)   totalEl.textContent   = '—';
+    if (gradeEl)   gradeEl.textContent   = '—';
+    if (statusEl)  statusEl.textContent  = '—';
+    if (demeritEl) demeritEl.textContent = '—';
+    if (suspEl)    suspEl.textContent    = '—';
+    if (remarksEl) remarksEl.value       = '';
+    if (counselTbody) counselTbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:20px;">Loading…</td></tr>';
+
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_gmrc.php?student_number=${encodeURIComponent(studentNumber)}`);
+        const data = await res.json();
+
+        if (!data.success || !data.students || !data.students.length) return;
+        const s = data.students[0];
+
+        // Offense counts by level
+        const offenses = s.offenses || [];
+        const byLevel  = {1:0, 2:0, 3:0, 4:0};
+        offenses.forEach(o => { const lvl = parseInt(o.offense_level); if (byLevel[lvl] !== undefined) byLevel[lvl]++; });
+        ['gmrc-l1','gmrc-l2','gmrc-l3','gmrc-l4'].forEach((id, i) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = byLevel[i + 1] || 0;
+        });
+        if (totalEl)   totalEl.textContent   = offenses.length;
+        if (gradeEl)   gradeEl.textContent   = s.gmrc_grade     || '—';
+        if (statusEl)  statusEl.textContent  = s.status         || '—';
+        if (demeritEl) demeritEl.textContent = s.total_demerits || '0';
+        if (suspEl)    suspEl.textContent    = s.suspension_days != null ? s.suspension_days : '—';
+        if (remarksEl) remarksEl.value       = s.remarks        || '';
+
+        // Adviser
+        if (s.adviser_name) {
+            const advEl = document.getElementById('individualAdviser');
+            if (advEl) advEl.textContent = s.adviser_name;
+        }
+
+        // Counseling referral history
+        if (counselTbody) {
+            const referrals = s.referrals || [];
+            counselTbody.innerHTML = referrals.length
+                ? referrals.map(r => `
+                    <tr>
+                        <td>${escHtml(r.date_sent || r.date || '—')}</td>
+                        <td>${escHtml(r.remarks   || '—')}</td>
+                        <td>${escHtml(r.status    || '—')}</td>
+                    </tr>`).join('')
+                : '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:20px;">No referrals on record.</td></tr>';
+        }
+
+    } catch(err) {
+        console.error('viewStudentGMRC fetch error:', err);
+    }
 }
 // ════════════════════════════════════════════════════════════
 //  API HELPERS
