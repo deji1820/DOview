@@ -2450,6 +2450,29 @@ function navigateToDocumentIssuance() {
     loadIssuanceTemplates();
 }
 
+async function loadIssuanceTemplatesIntoDropdown() {
+    const sel = document.getElementById('documentTypeSelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Loading…</option>';
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_form_templates.php`);
+        const data = await res.json();
+        const templates = (data.success && data.templates)
+            ? data.templates.filter(t => t.appears_in === 'document_issuance')
+            : [];
+        if (!templates.length) {
+            sel.innerHTML = '<option value="">No templates uploaded yet</option>';
+            return;
+        }
+        sel.innerHTML = '<option value="">Select Document Type</option>' +
+            templates.map(t =>
+                `<option value="${escHtml(t.file_path)}">${escHtml(t.template_name)}</option>`
+            ).join('');
+    } catch(err) {
+        sel.innerHTML = '<option value="">Failed to load</option>';
+    }
+}
+
 async function loadIssuanceTemplates() {
     const tbody = document.getElementById('tbody-issuance-templates');
     if (!tbody) return;
@@ -3881,19 +3904,8 @@ window.editAnnouncement = async function(){
     }
 };
 
-// 10. printIssuanceDocument — was: alert()
-window.printIssuanceDocument = function(){
-    const type=document.getElementById('documentTypeSelect').value;
-    const date=document.getElementById('issuanceDate').value;
-    const name=document.getElementById('issuanceName').value;
-    const gs=document.getElementById('issuanceGradeSection').value;
-    if(!type||!date||!name||!gs){ HimcModal.info('Missing Fields','Please fill in all required fields before printing.'); return; }
-    const names={'temporary-slip':'Temporary Slip','call-slip':'Call Slip','admit-slip':'Admit Slip','off-campus-permit':'Off Campus Permit'};
-    HimcModal.info('Printing',`Sending ${names[type]} to printer for:\n${name} · ${gs} · ${date}`);
-    document.getElementById('documentIssuanceForm').reset();
-    document.getElementById('dynamicFieldsContainer').innerHTML='';
-};
-
+// 10. printIssuanceDocument — no longer used, page now uses triggerPrint()
+window.printIssuanceDocument = function(){ /* deprecated */ };
 // 11. updateRequestStatus — was: alert()
 window.updateRequestStatus = async function(requestId, newStatus, linkEl){
     try {
