@@ -1127,7 +1127,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .form-template-filter { padding: 12px 40px 12px 20px; background: #a8a8a8; border: none; border-radius: 20px; color: var(--white); font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; min-width: 150px; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%23ffffff' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 15px center; background-size: 12px; }
         .form-templates-table-wrapper { background: var(--white); border-radius: 8px; overflow-x: auto; }
         .form-templates-table th {
-    /* was: border: 2px solid var(--dark-navy); */
     border: none;
     border-bottom: 1px solid #e5e7eb;
     background: var(--dark-navy);
@@ -1135,12 +1134,14 @@ document.addEventListener('DOMContentLoaded', () => {
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    padding: 16px 16px;  /* increase this — was likely 12px or less */
 }
 .form-templates-table td {
-    /* was: border: 2px solid var(--dark-navy); */
     border: none;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
     text-align: left;
+    padding: 18px 16px;  /* increase row height */
+    vertical-align: middle;
 }
         /* ── GMRC ────────────────────────────────────── */
         .gmrc-content-wrapper { max-width: 1400px; margin: 0 auto; }
