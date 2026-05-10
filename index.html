@@ -2893,17 +2893,15 @@ async function loadStudentOffenseRecords() {
         }));
 
         // Only students with demerits > 0
-        const withOffenses = allStudents.filter(s => parseInt(s.total_demerits) > 0);
+        // Include ALL students, default demerits to 0 if missing
+if (!allStudents.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No students found.</td></tr>`;
+    initPagination('student-records', 'tbody-student-records', 10);
+    return;
+}
 
-        if (!withOffenses.length) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
-            initPagination('student-records', 'tbody-student-records', 10);
-            return;
-        }
-
-        // Sort by name
-        withOffenses.sort((a, b) => (a.full_name_display || '').localeCompare(b.full_name_display || ''));
-
+// Sort by name by default
+allStudents.sort((a, b) => (a.full_name_display || '').localeCompare(b.full_name_display || ''));
         const standingClass = (status) => {
             if (!status) return '';
             if (status === 'Conduct Probation') return 'color:#dc3545;font-weight:600;';
@@ -2912,7 +2910,7 @@ async function loadStudentOffenseRecords() {
             return 'font-weight:600;';
         };
 
-        tbody.innerHTML = withOffenses.map(s => {
+        tbody.innerHTML = allStudents.map(s => {
     const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
     return `<tr>
         <td style="text-align:left;">${escHtml(s.full_name_display)}</td>
