@@ -3178,16 +3178,14 @@ function sorPopulateOffenseFilter(level) {
 function applyStudentRecordFilters() {
     const tbody = document.getElementById('tbody-student-records');
     if (!tbody) return;
-    // Don't filter if data hasn't loaded yet
+
+    // Don't filter if data hasn't loaded yet (still showing loading/empty row)
     const rows = Array.from(tbody.querySelectorAll('tr'));
     if (!rows.length || (rows.length === 1 && rows[0].querySelector('td[colspan]'))) return;
 
     const search   = (document.getElementById('sorSearchInput').value || '').toLowerCase();
     const standing = (document.getElementById('sorStandingFilter') || {}).value || '';
     const sort     = (document.getElementById('sorSortFilter') || {}).value || '';
-
-    const tbody = document.getElementById('tbody-student-records');
-    if (!tbody) return;
 
     // Filter rows
     const allRows = Array.from(tbody.querySelectorAll('tr'));
@@ -3214,7 +3212,6 @@ function applyStudentRecordFilters() {
             }
             return 0;
         });
-        // Re-append in sorted order
         visibleRows.forEach(r => tbody.appendChild(r));
     }
 
