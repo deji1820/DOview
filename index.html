@@ -296,37 +296,59 @@ async function loadDailyReports(dateStr) {
 //  DAILY REPORTS — Edit & Delete
 // ════════════════════════════════════════════════════════════
 window.editOffenseReport = async function(id, studentName, offense, level, reporter, remarks) {
+    // Ensure offense types are loaded
+    await loadOffenseTypes();
+
+    // Build offense options for the current level
+    function buildOffenseOptions(selectedLevel, selectedOffense) {
+        const types = offenseTypesByLevel[selectedLevel] || offenseTypesByLevel[String(selectedLevel)] || [];
+        if (!types.length) return `<option value="${escHtml(selectedOffense)}" selected>${escHtml(selectedOffense)}</option>`;
+        return types.map(t =>
+            `<option value="${escHtml(t.title)}" data-id="${t.offense_type_id}" ${t.title === selectedOffense ? 'selected' : ''}>${escHtml(t.title)}</option>`
+        ).join('');
+    }
+
     HimcModal.form(
         'Edit Offense Report',
         `<div class="hf-row"><label class="hf-label">Student</label>
            <input class="hf-input" value="${escHtml(studentName)}" disabled style="opacity:0.6;cursor:not-allowed;"></div>
-         <div class="hf-row"><label class="hf-label">Offense</label>
-           <input class="hf-input" id="er-offense" value="${escHtml(offense)}"></div>
          <div class="hf-row"><label class="hf-label">Level</label>
-           <select class="hf-select" id="er-level">
+           <select class="hf-select" id="er-level" onchange="erUpdateOffenseDropdown(this.value)">
              <option value="1" ${level==1?'selected':''}>Level 1 — Negligence</option>
              <option value="2" ${level==2?'selected':''}>Level 2 — Minor Infractions</option>
-             <option value="3" ${level==3?'selected':''}>Level 3 — Disrespect & Dishonesty</option>
+             <option value="3" ${level==3?'selected':''}>Level 3 — Disrespect &amp; Dishonesty</option>
              <option value="4" ${level==4?'selected':''}>Level 4 — Unbecoming Conduct</option>
+           </select></div>
+         <div class="hf-row"><label class="hf-label">Offense</label>
+           <select class="hf-select" id="er-offense">
+             ${buildOffenseOptions(level, offense)}
            </select></div>
          <div class="hf-row"><label class="hf-label">Remarks</label>
            <input class="hf-input" id="er-remarks" value="${escHtml(remarks)}" placeholder="Optional remarks"></div>`,
         async function() {
-            const newOffense = document.getElementById('er-offense').value.trim();
             const newLevel   = document.getElementById('er-level').value;
+            const offenseSel = document.getElementById('er-offense');
+            const newOffense = offenseSel.options[offenseSel.selectedIndex]?.text || offenseSel.value;
+            const newOffenseId = offenseSel.options[offenseSel.selectedIndex]?.dataset?.id || null;
             const newRemarks = document.getElementById('er-remarks').value.trim();
-            if (!newOffense) { HimcModal.setError('Offense cannot be empty.'); return; }
+
+            if (!newOffense) { HimcModal.setError('Please select an offense.'); return; }
             HimcModal.setLoading();
             try {
-                const res  = await apiFetch(`${API_BASE}/update_violation.php`, {
+                const res = await apiFetch(`${API_BASE}/update_violation.php`, {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ offense_report_id: id, offense: newOffense, offense_level: parseInt(newLevel), remarks: newRemarks })
+                    body:    JSON.stringify({
+                        offense_report_id: id,
+                        offense:           newOffense,
+                        offense_level:     parseInt(newLevel),
+                        offense_type_id:   newOffenseId ? parseInt(newOffenseId) : null,
+                        remarks:           newRemarks
+                    })
                 });
                 const data = await res.json();
                 if (data.success) {
                     HimcModal.close();
-                    // Refresh the table to reflect changes
                     const picker = document.getElementById('reportDatePicker');
                     loadDailyReports(picker ? picker.value : '');
                 } else {
@@ -339,6 +361,20 @@ window.editOffenseReport = async function(id, studentName, offense, level, repor
             }
         }
     );
+};
+
+// Called when the Level dropdown changes inside the Edit modal
+window.erUpdateOffenseDropdown = function(selectedLevel) {
+    const sel = document.getElementById('er-offense');
+    if (!sel) return;
+    const types = offenseTypesByLevel[selectedLevel] || offenseTypesByLevel[String(selectedLevel)] || [];
+    if (!types.length) {
+        sel.innerHTML = `<option value="">No offenses for this level</option>`;
+        return;
+    }
+    sel.innerHTML = types.map(t =>
+        `<option value="${escHtml(t.title)}" data-id="${t.offense_type_id}">${escHtml(t.title)}</option>`
+    ).join('');
 };
 
 window.deleteOffenseReport = async function(id, linkEl) {
