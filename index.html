@@ -3173,16 +3173,17 @@ function renderGMRCSections(sections) {
     }
     container.innerHTML = sections.map(sec => `
         <div class="gmrc-class-card" id="gmrc-card-${sec.section_id}">
-            <div class="gmrc-class-header">
+            <div class="gmrc-class-header" style="cursor:pointer;" onclick="toggleGMRCSection(${sec.section_id})">
                 <div class="gmrc-class-info">
                     <strong>Grade & Section:</strong> ${escHtml(sec.grade_level)} - ${escHtml(sec.section_name)}<br>
                     <strong>Adviser:</strong> ${escHtml(sec.adviser_name || '—')}
                 </div>
                 <div class="gmrc-action-buttons">
-                    <button class="btn-gmrc-action btn-gmrc-print" onclick="printGMRCSection(${sec.section_id})">Print</button>
+                    <button class="btn-gmrc-action btn-gmrc-print" onclick="event.stopPropagation();printGMRCSection(${sec.section_id})">Print</button>
+                    <span id="gmrc-arrow-${sec.section_id}" style="color:var(--gold);font-size:18px;margin-left:10px;">▶</span>
                 </div>
             </div>
-            <div class="gmrc-table-wrapper">
+            <div class="gmrc-table-wrapper" id="gmrc-table-${sec.section_id}" style="display:none;">
                 <table class="gmrc-grade-table">
                     <thead><tr><th>Name</th><th>Total Demerits</th><th>Status</th><th>Action</th></tr></thead>
                     <tbody id="gmrc-tbody-${sec.section_id}">
@@ -3194,7 +3195,7 @@ function renderGMRCSections(sections) {
     `).join('');
 
     // Load students for each section
-    sections.forEach(sec => loadGMRCSectionStudents(sec.section_id));
+    
 }
 
 async function loadGMRCSectionStudents(sectionId) {
@@ -3279,6 +3280,15 @@ function sorPopulateOffenseFilter(level) {
     if (!sel) return;
     sel.innerHTML = '<option value="">All Offenses</option>';
     (sorOffensesByLevel[level]||[]).forEach(o => { const opt=document.createElement('option'); opt.value=o; opt.textContent=o; sel.appendChild(opt); });
+}
+
+function toggleGMRCSection(sectionId) {
+    const table = document.getElementById(`gmrc-table-${sectionId}`);
+    const arrow = document.getElementById(`gmrc-arrow-${sectionId}`);
+    const isHidden = table.style.display === 'none';
+    table.style.display = isHidden ? '' : 'none';
+    arrow.textContent = isHidden ? '▼' : '▶';
+    if (isHidden) loadGMRCSectionStudents(sectionId);
 }
 
 // FIND and REPLACE the entire applyStudentRecordFilters function:
