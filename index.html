@@ -2843,11 +2843,16 @@ async function loadStudentOffenseRecords() {
     if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">Loading students…</td></tr>`;
     const students = await fetchStudents();
-    if (!students.length) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">No students found.</td></tr>`;
+    
+    // Filter: only students who have at least one offense
+    const withOffenses = students.filter(s => s.latest_offense && s.latest_offense !== '—' && s.latest_offense !== null);
+    
+    if (!withOffenses.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
+        initPagination('student-records', 'tbody-student-records', 10);
         return;
     }
-    tbody.innerHTML = students.map(s => {
+    tbody.innerHTML = withOffenses.map(s => {
         const gs      = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
         const offense  = escHtml(s.latest_offense  || '—');
         const level    = s.latest_level             || '—';
