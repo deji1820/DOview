@@ -328,8 +328,9 @@ window.editOffenseReport = async function(id, studentName, offense, level, repor
         async function() {
             const newLevel   = document.getElementById('er-level').value;
             const offenseSel = document.getElementById('er-offense');
-            const newOffense = offenseSel.options[offenseSel.selectedIndex]?.text || offenseSel.value;
-            const newOffenseId = offenseSel.options[offenseSel.selectedIndex]?.dataset?.id || null;
+            const selectedOpt  = offenseSel.options[offenseSel.selectedIndex];
+const newOffense   = selectedOpt?.text || offenseSel.value;
+const newOffenseId = selectedOpt?.dataset?.id ? parseInt(selectedOpt.dataset.id) : null;
             const newRemarks = document.getElementById('er-remarks').value.trim();
 
             if (!newOffense) { HimcModal.setError('Please select an offense.'); return; }
