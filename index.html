@@ -2901,7 +2901,16 @@ if (!allStudents.length) {
 }
 
 // Sort by name by default
-allStudents.sort((a, b) => (a.full_name_display || '').localeCompare(b.full_name_display || ''));
+// Only students with at least 1 demerit
+const withOffenses = allStudents.filter(s => parseInt(s.total_demerits) > 0);
+
+if (!withOffenses.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
+    initPagination('student-records', 'tbody-student-records', 10);
+    return;
+}
+
+withOffenses.sort((a, b) => (a.full_name_display || '').localeCompare(b.full_name_display || ''));
         const standingClass = (status) => {
             if (!status) return '';
             if (status === 'Conduct Probation') return 'color:#dc3545;font-weight:600;';
@@ -2910,7 +2919,7 @@ allStudents.sort((a, b) => (a.full_name_display || '').localeCompare(b.full_name
             return 'font-weight:600;';
         };
 
-        tbody.innerHTML = allStudents.map(s => {
+        tbody.innerHTML = withOffenses.map(s => {
     const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
     return `<tr>
         <td style="text-align:left;">${escHtml(s.full_name_display)}</td>
@@ -3167,6 +3176,12 @@ function sorPopulateOffenseFilter(level) {
 
 // FIND and REPLACE the entire applyStudentRecordFilters function:
 function applyStudentRecordFilters() {
+    const tbody = document.getElementById('tbody-student-records');
+    if (!tbody) return;
+    // Don't filter if data hasn't loaded yet
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    if (!rows.length || (rows.length === 1 && rows[0].querySelector('td[colspan]'))) return;
+
     const search   = (document.getElementById('sorSearchInput').value || '').toLowerCase();
     const standing = (document.getElementById('sorStandingFilter') || {}).value || '';
     const sort     = (document.getElementById('sorSortFilter') || {}).value || '';
