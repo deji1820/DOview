@@ -1675,13 +1675,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <table class="reports-table">
                         <thead>
     <tr>
-        <th>Name</th>
-        <th>Grade &amp; Section</th>
-        <th>Total Demerits</th>
-        <th>GMRC Grade</th>
-        <th>Standing</th>
-        <th>Action</th>
-    </tr>
+    <th>Name</th>
+    <th>Grade &amp; Section</th>
+    <th>Total Demerits</th>
+    <th>Standing</th>
+    <th>Action</th>
+</tr>
 </thead>
                         <tbody id="tbody-student-records"></tbody>
                     </table>
@@ -2843,7 +2842,7 @@ function escJs(s)   { return s ? String(s).replace(/\\/g,'\\\\').replace(/'/g,"\
 async function loadStudentOffenseRecords() {
     const tbody = document.getElementById('tbody-student-records');
     if (!tbody) return;
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">Loading students…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">Loading students…</td></tr>`;
 
     try {
         // Fetch GMRC data which already has offense counts, demerits, status
@@ -2851,7 +2850,7 @@ async function loadStudentOffenseRecords() {
         const data = await res.json();
 
         if (!data.success || !data.students || !data.students.length) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
             initPagination('student-records', 'tbody-student-records', 10);
             return;
         }
@@ -2860,7 +2859,7 @@ async function loadStudentOffenseRecords() {
         const withOffenses = data.students.filter(s => parseInt(s.total_demerits) > 0);
 
         if (!withOffenses.length) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
             initPagination('student-records', 'tbody-student-records', 10);
             return;
         }
@@ -2876,50 +2875,43 @@ async function loadStudentOffenseRecords() {
         tbody.innerHTML = withOffenses.map(s => {
             const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
             return `<tr>
-                <td>${escHtml(s.full_name_display)}</td>
-                <td>${escHtml(gs || '—')}</td>
-                <td style="text-align:center;">${s.total_demerits ?? '0'}</td>
-                <td style="text-align:center;color:#dc3545;font-weight:700;">${s.gmrc_grade ?? '—'}</td>
-                <td style="text-align:center;${standingClass(s.status)}">${escHtml(s.status || '—')}</td>
-                <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
-            </tr>`;
+    <td>${escHtml(s.full_name_display)}</td>
+    <td>${escHtml(gs || '—')}</td>
+    <td style="text-align:center;">${s.total_demerits ?? '0'}</td>
+    <td style="text-align:center;${standingClass(s.status)}">${escHtml(s.status || '—')}</td>
+    <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
+</tr>`;
         }).join('');
 
         initPagination('student-records', 'tbody-student-records', 6);
 
     } catch(err) {
         console.error('loadStudentOffenseRecords:', err);
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:30px;">Failed to load.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc3545;padding:30px;">Failed to load.</td></tr>`;
     }
 }
 
 function initStudentRecordSearch() {
     const input = document.getElementById('sorSearchInput');
-    if (!input) return;
+    if (!input || input._wired) return;
+    input._wired = true;
+
     let timer;
-    input.addEventListener('input', function(){
+    input.addEventListener('input', function() {
         clearTimeout(timer);
-        const val = this.value.trim();
-        timer = setTimeout(async()=>{
-            const tbody = document.getElementById('tbody-student-records');
-            if (!val) { await loadStudentOffenseRecords(); return; }
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">Searching…</td></tr>`;
-            const students = await fetchStudents({ search: val });
-            if (!students.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">No results for "${escHtml(val)}".</td></tr>`; return; }
-            tbody.innerHTML = students.map(s => {
-                const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
-                return `<tr>
-    <td>${escHtml(s.full_name_display)}</td>
-    <td>${escHtml(s.latest_offense  || '—')}</td>
-    <td>${s.latest_level            || '—'}</td>
-    <td>${s.latest_date             || '—'}</td>
-    <td>${escHtml(s.latest_reporter || '—')}</td>
-    <td>${escHtml(s.latest_remarks  || '—')}</td>
-    <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
-</tr>`;
-            }).join('');
-            initPagination('student-records','tbody-student-records',10);
-        }, 400);
+        const val = this.value.trim().toLowerCase();
+        timer = setTimeout(() => {
+            // Filter the already-loaded GMRC rows in the table
+            const rows = Array.from(document.querySelectorAll('#tbody-student-records tr'));
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.dataset.filtered = (!val || text.includes(val)) ? 'false' : 'true';
+            });
+            if (paginationState['student-records']) {
+                paginationState['student-records'].currentPage = 1;
+            }
+            renderPagination('student-records');
+        }, 200);
     });
 }
 
