@@ -256,7 +256,7 @@ function prependToDailyReports(data, reporterName) {
     const ph = tbody.querySelector('td[colspan]');
     if (ph) ph.closest('tr').remove();
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${escHtml(String(data.offense_report_id||''))}</td><td>${escHtml(data.student_name)}</td><td>${escHtml(data.offense)}</td><td>${data.level}</td><td>${escHtml(reporterName)}</td><td>N/A</td><td>${data.demerits} demerit${data.demerits>1?'s':''} · ${escHtml(data.sanction)}</td><td><a class="action-link" href="#">Edit</a> / <a class="action-link" href="#" style="color:#dc3545;">Delete</a></td>`;
+    tr.innerHTML = `<td>${escHtml(String(data.offense_report_id||''))}</td><td>${escHtml(data.student_name)}</td><td>${escHtml(data.offense)}</td><td>${data.level}</td><td>${escHtml(reporterName)}</td><td>${data.demerits} demerit${data.demerits>1?'s':''} · ${escHtml(data.sanction)}</td><td><a class="action-link" href="#" onclick="editOffenseReport(${data.offense_report_id}, '${escJs(data.student_name)}', '${escJs(data.offense)}', ${data.level}, '${escJs(reporterName)}', ''); return false;">Edit</a> / <a class="action-link" href="#" style="color:#dc3545;" onclick="deleteOffenseReport(${data.offense_report_id}, this); return false;">Delete</a></td>`;
     tbody.prepend(tr);
     initPagination('daily-reports','tbody-daily-reports',10);
 }
@@ -284,13 +284,85 @@ async function loadDailyReports(dateStr) {
             tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#aaa;padding:30px;">No violations recorded${dateStr?' for this date':''}.`;
             initPagination('daily-reports','tbody-daily-reports',10); return;
         }
-        tbody.innerHTML = data.violations.map(v=>`<tr><td>${escHtml(v.student_number)}</td><td>${escHtml(v.student_name)}</td><td>${escHtml(v.offense||'—')}</td><td>${v.offense_level||'—'}</td><td>${escHtml(v.reporter_name||'—')}</td><td>${v.evidence_links?`<span class="evidence-link">${escHtml(v.evidence_links)}</span>`:'N/A'}</td><td>${escHtml(v.remarks||'N/A')}</td><td><a class="action-link" href="#">Edit</a> / <a class="action-link" href="#" style="color:#dc3545;">Delete</a></td></tr>`).join('');
+        tbody.innerHTML = data.violations.map(v=>`<tr><td>${escHtml(v.student_number)}</td><td>${escHtml(v.student_name)}</td><td>${escHtml(v.offense||'—')}</td><td>${v.offense_level||'—'}</td><td>${escHtml(v.reporter_name||'—')}</td><td>${escHtml(v.remarks||'N/A')}</td><td><a class="action-link" href="#" onclick="editOffenseReport(${v.offense_report_id}, '${escJs(v.student_name)}', '${escJs(v.offense||'')}', ${v.offense_level||1}, '${escJs(v.reporter_name||'')}', '${escJs(v.remarks||'')}'); return false;">Edit</a> / <a class="action-link" href="#" style="color:#dc3545;" onclick="deleteOffenseReport(${v.offense_report_id}, this); return false;">Delete</a></td></tr>`).join('');
         initPagination('daily-reports','tbody-daily-reports',10);
     } catch(err) {
         console.error('loadDailyReports:', err);
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#dc3545;padding:30px;">Failed to load.</td></tr>`;
     }
 }
+
+// ════════════════════════════════════════════════════════════
+//  DAILY REPORTS — Edit & Delete
+// ════════════════════════════════════════════════════════════
+window.editOffenseReport = async function(id, studentName, offense, level, reporter, remarks) {
+    HimcModal.form(
+        'Edit Offense Report',
+        `<div class="hf-row"><label class="hf-label">Student</label>
+           <input class="hf-input" value="${escHtml(studentName)}" disabled style="opacity:0.6;cursor:not-allowed;"></div>
+         <div class="hf-row"><label class="hf-label">Offense</label>
+           <input class="hf-input" id="er-offense" value="${escHtml(offense)}"></div>
+         <div class="hf-row"><label class="hf-label">Level</label>
+           <select class="hf-select" id="er-level">
+             <option value="1" ${level==1?'selected':''}>Level 1 — Negligence</option>
+             <option value="2" ${level==2?'selected':''}>Level 2 — Minor Infractions</option>
+             <option value="3" ${level==3?'selected':''}>Level 3 — Disrespect & Dishonesty</option>
+             <option value="4" ${level==4?'selected':''}>Level 4 — Unbecoming Conduct</option>
+           </select></div>
+         <div class="hf-row"><label class="hf-label">Remarks</label>
+           <input class="hf-input" id="er-remarks" value="${escHtml(remarks)}" placeholder="Optional remarks"></div>`,
+        async function() {
+            const newOffense = document.getElementById('er-offense').value.trim();
+            const newLevel   = document.getElementById('er-level').value;
+            const newRemarks = document.getElementById('er-remarks').value.trim();
+            if (!newOffense) { HimcModal.setError('Offense cannot be empty.'); return; }
+            HimcModal.setLoading();
+            try {
+                const res  = await apiFetch(`${API_BASE}/update_violation.php`, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ offense_report_id: id, offense: newOffense, offense_level: parseInt(newLevel), remarks: newRemarks })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    HimcModal.close();
+                    // Refresh the table to reflect changes
+                    const picker = document.getElementById('reportDatePicker');
+                    loadDailyReports(picker ? picker.value : '');
+                } else {
+                    HimcModal.setError(data.message || 'Failed to update.');
+                    HimcModal.resetLoading();
+                }
+            } catch {
+                HimcModal.setError('Network error. Please try again.');
+                HimcModal.resetLoading();
+            }
+        }
+    );
+};
+
+window.deleteOffenseReport = async function(id, linkEl) {
+    const ok = await HimcModal.confirm('Delete Offense', 'Are you sure you want to delete this offense record? This cannot be undone.', 'Delete');
+    if (!ok) return;
+    try {
+        const res  = await apiFetch(`${API_BASE}/delete_violation.php`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ offense_report_id: id })
+        });
+        const data = await res.json();
+        if (data.success) {
+            const row = linkEl.closest('tr');
+            row.remove();
+            // Re-init pagination after row removal
+            initPagination('daily-reports', 'tbody-daily-reports', 10);
+        } else {
+            HimcModal.info('Error', data.message || 'Failed to delete.');
+        }
+    } catch {
+        HimcModal.info('Network Error', 'Could not connect. Please try again.');
+    }
+};
 
 function navigateToDailyReports() {
     hideAllPages(); document.getElementById('dailyReportsPage').classList.remove('hidden');
@@ -1651,7 +1723,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="reports-table-wrapper">
                     <table class="reports-table">
-                        <thead><tr><th>ID</th><th>Name</th><th>Offense</th><th>Level</th><th>Reported by</th><th>Evidence</th><th>Remarks</th><th>Action</th></tr></thead>
+                        <thead><tr><th>ID</th><th>Name</th><th>Offense</th><th>Level</th><th>Reported by</th><th>Remarks</th><th>Action</th></tr></thead>
                         <tbody id="tbody-daily-reports"></tbody>
                     </table>
                     <div class="pagination-container">
