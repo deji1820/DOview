@@ -3150,18 +3150,14 @@ function sorPopulateOffenseFilter(level) {
     (sorOffensesByLevel[level]||[]).forEach(o => { const opt=document.createElement('option'); opt.value=o; opt.textContent=o; sel.appendChild(opt); });
 }
 
+// FIND and REPLACE the entire applyStudentRecordFilters function:
 function applyStudentRecordFilters() {
-    const search  = (document.getElementById('sorSearchInput').value || '').toLowerCase();
-    const level   = document.getElementById('sorLevelFilter').value;
-    const offense = document.getElementById('sorOffenseFilter').value;
+    const search = (document.getElementById('sorSearchInput').value || '').toLowerCase();
 
     Array.from(document.querySelectorAll('#tbody-student-records tr')).forEach(row => {
-        const name   = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
-        const rOff   = row.cells[1] ? row.cells[1].textContent.trim() : '';
-        const rLevel = row.cells[2] ? row.cells[2].textContent.trim() : '';
-        const show   = (!search  || name.includes(search))
-                    && (!level   || rLevel === level)
-                    && (!offense || rOff   === offense);
+        const name = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
+        const gs   = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
+        const show = !search || name.includes(search) || gs.includes(search);
         row.dataset.filtered = show ? 'false' : 'true';
     });
 
