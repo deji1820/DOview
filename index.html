@@ -3331,15 +3331,14 @@ function initGMRCFilters() {
         gradeFilter._wired = true;
     }
     if (searchInput && !searchInput._wired) {
-    let _gmrcSearchTimer;
-    searchInput.addEventListener('input', () => {
-        clearTimeout(_gmrcSearchTimer);
-        _gmrcSearchTimer = setTimeout(applyGMRCFilters, 400);
-    });
-    searchInput._wired = true;
+        let _gmrcSearchTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(_gmrcSearchTimer);
+            _gmrcSearchTimer = setTimeout(applyGMRCFilters, 400);
+        });
+        searchInput._wired = true;
+    }
 }
-}
-
 function openOffenseRecordModal() {
     const num = document.getElementById('referralStudentNumber').value.trim();
     if (!num) {
@@ -3357,8 +3356,8 @@ async function applyGMRCFilters() {
     const grade  = document.getElementById('gradeFilter').value;
     const search = document.getElementById('gmrcSearchInput').value.toLowerCase().trim();
 
+    // Grade-only filter — no search
     if (!search) {
-        // No search — just filter by grade as before
         const filtered = allSections.filter(sec =>
             !grade || sec.grade_level === grade
         );
@@ -3366,37 +3365,35 @@ async function applyGMRCFilters() {
         return;
     }
 
-    // Check if the query looks like a student number (digits) or a name
-    // Load all section students in parallel and find matches
+    // Student name / ID search across all (grade-filtered) sections
     const container = document.getElementById('gmrc-sections-container');
     container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">Searching…</div>`;
 
     try {
-        const results = await Promise.all(allSections
-            .filter(sec => !grade || sec.grade_level === grade)
-            .map(async sec => {
-                try {
-                    const res  = await apiFetch(`${API_BASE}/get_gmrc.php?section_id=${sec.section_id}`);
-                    const data = await res.json();
-                    const students = (data.success && data.students) ? data.students : [];
-                    const matched  = students.filter(s =>
-                        (s.full_name_display || '').toLowerCase().includes(search) ||
-                        (s.student_number   || '').toLowerCase().includes(search)
-                    );
-                    return { sec, students, matched };
-                } catch { return { sec, students: [], matched: [] }; }
-            })
+        const sectionsToSearch = allSections.filter(sec =>
+            !grade || sec.grade_level === grade
         );
 
-        // Only show sections that have matching students
+        const results = await Promise.all(sectionsToSearch.map(async sec => {
+            try {
+                const res  = await apiFetch(`${API_BASE}/get_gmrc.php?section_id=${sec.section_id}`);
+                const data = await res.json();
+                const students = (data.success && data.students) ? data.students : [];
+                const matched  = students.filter(s =>
+                    (s.full_name_display || '').toLowerCase().includes(search) ||
+                    (s.student_number   || '').toLowerCase().includes(search)
+                );
+                return { sec, matched };
+            } catch { return { sec, matched: [] }; }
+        }));
+
         const hits = results.filter(r => r.matched.length > 0);
 
         if (!hits.length) {
-            container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No students found matching "${escHtml(search)}".</div>`;
+            container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No students found matching "<strong>${escHtml(search)}</strong>".</div>`;
             return;
         }
 
-        // Render only matching sections, auto-expanded, showing only matched students
         container.innerHTML = hits.map(({ sec, matched }) => `
             <div class="gmrc-class-card" id="gmrc-card-${sec.section_id}">
                 <div class="gmrc-class-header" style="cursor:pointer;" onclick="toggleGMRCSection(${sec.section_id})">
@@ -3427,8 +3424,9 @@ async function applyGMRCFilters() {
         `).join('');
 
     } catch(err) {
-        console.error('applyGMRCFilters search:', err);
-        container.innerHTML = `<div style="text-align:center;color:#dc3545;padding:40px;">Search failed. Please try again.</div>`;
+        console.error('applyGMRCFilters:', err);
+        document.getElementById('gmrc-sections-container').innerHTML =
+            `<div style="text-align:center;color:#dc3545;padding:40px;">Search failed. Please try again.</div>`;
     }
 }
 
