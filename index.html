@@ -2203,7 +2203,7 @@ function navigateToDailyReports() {
         loadDailyReports('');
     }
 }
-function navigateToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); loadStudentOffenseRecords(); initStudentRecordSearch(); initPagination('student-records','tbody-student-records',10); }
+function navigateToStudentRecords() { hideAllPages(); document.getElementById('studentRecordsPage').classList.remove('hidden'); updateActiveNav(1); updateTopBar('📋','Student Offense Records',''); loadStudentOffenseRecords(); initPagination('student-records','tbody-student-records',10); }
 function navigateToCounselingReferral() { 
     hideAllPages(); 
     document.getElementById('counselingReferralPage').classList.remove('hidden'); 
@@ -2928,29 +2928,7 @@ allStudents.sort((a, b) => (a.full_name_display || '').localeCompare(b.full_name
     }
 }
 
-function initStudentRecordSearch() {
-    const input = document.getElementById('sorSearchInput');
-    if (!input || input._wired) return;
-    input._wired = true;
 
-    let timer;
-    input.addEventListener('input', function() {
-        clearTimeout(timer);
-        const val = this.value.trim().toLowerCase();
-        timer = setTimeout(() => {
-            // Filter the already-loaded GMRC rows in the table
-            const rows = Array.from(document.querySelectorAll('#tbody-student-records tr'));
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.dataset.filtered = (!val || text.includes(val)) ? 'false' : 'true';
-            });
-            if (paginationState['student-records']) {
-                paginationState['student-records'].currentPage = 1;
-            }
-            renderPagination('student-records');
-        }, 200);
-    });
-}
 
 // ════════════════════════════════════════════════════════════
 //  ADD VIOLATION MODAL — student ID lookup
