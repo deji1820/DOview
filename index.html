@@ -3358,9 +3358,15 @@ async function applyGMRCFilters() {
 
     // Grade-only filter — no search
     if (!search) {
-        const filtered = allSections.filter(sec =>
-            !grade || sec.grade_level === grade
-        );
+        const filtered = allSections.filter(sec => {
+    if (!grade) return true;
+    const secGrade = String(sec.grade_level || '').trim();
+    const selGrade = String(grade).trim();
+    // Match "Grade 2" === "Grade 2", or "2" === "Grade 2", or "Grade 2" === "2"
+    return secGrade === selGrade ||
+           secGrade === selGrade.replace('Grade ', '') ||
+           'Grade ' + secGrade === selGrade;
+});
         renderGMRCSections(filtered);
         return;
     }
@@ -3370,9 +3376,14 @@ async function applyGMRCFilters() {
     container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">Searching…</div>`;
 
     try {
-        const sectionsToSearch = allSections.filter(sec =>
-            !grade || sec.grade_level === grade
-        );
+        const sectionsToSearch = allSections.filter(sec => {
+    if (!grade) return true;
+    const secGrade = String(sec.grade_level || '').trim();
+    const selGrade = String(grade).trim();
+    return secGrade === selGrade ||
+           secGrade === selGrade.replace('Grade ', '') ||
+           'Grade ' + secGrade === selGrade;
+});
 
         const results = await Promise.all(sectionsToSearch.map(async sec => {
             try {
