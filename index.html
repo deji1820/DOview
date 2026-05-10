@@ -2846,8 +2846,8 @@ async function loadStudentOffenseRecords() {
 
     try {
         // Fetch GMRC data which already has offense counts, demerits, status
-        const res  = await apiFetch(`${API_BASE}/get_gmrc.php`);
-        const data = await res.json();
+        const res  = await apiFetch(`${API_BASE}/get_gmrc.php?all=1`);
+const data = await res.json();
 
         if (!data.success || !data.students || !data.students.length) {
             tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
