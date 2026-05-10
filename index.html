@@ -2845,24 +2845,39 @@ async function loadStudentOffenseRecords() {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">Loading students…</td></tr>`;
 
     try {
-        // Fetch GMRC data which already has offense counts, demerits, status
-        const res  = await apiFetch(`${API_BASE}/get_gmrc.php?all=1`);
-const data = await res.json();
+        // First get all sections, then load GMRC for each
+        const secRes  = await apiFetch(`${API_BASE}/get_sections.php`);
+        const secData = await secRes.json();
 
-        if (!data.success || !data.students || !data.students.length) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
+        if (!secData.success || !secData.sections.length) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No sections found.</td></tr>`;
             initPagination('student-records', 'tbody-student-records', 10);
             return;
         }
 
-        // Only show students who have at least 1 offense (demerits > 0)
-        const withOffenses = data.students.filter(s => parseInt(s.total_demerits) > 0);
+        // Fetch GMRC for all sections in parallel
+        const allStudents = [];
+        await Promise.all(secData.sections.map(async sec => {
+            try {
+                const res  = await apiFetch(`${API_BASE}/get_gmrc.php?section_id=${sec.section_id}`);
+                const data = await res.json();
+                if (data.success && data.students) {
+                    allStudents.push(...data.students);
+                }
+            } catch(e) {}
+        }));
+
+        // Only students with demerits > 0
+        const withOffenses = allStudents.filter(s => parseInt(s.total_demerits) > 0);
 
         if (!withOffenses.length) {
             tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
             initPagination('student-records', 'tbody-student-records', 10);
             return;
         }
+
+        // Sort by name
+        withOffenses.sort((a, b) => (a.full_name_display || '').localeCompare(b.full_name_display || ''));
 
         const standingClass = (status) => {
             if (!status) return '';
@@ -2875,15 +2890,15 @@ const data = await res.json();
         tbody.innerHTML = withOffenses.map(s => {
             const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
             return `<tr>
-    <td>${escHtml(s.full_name_display)}</td>
-    <td>${escHtml(gs || '—')}</td>
-    <td style="text-align:center;">${s.total_demerits ?? '0'}</td>
-    <td style="text-align:center;${standingClass(s.status)}">${escHtml(s.status || '—')}</td>
-    <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
-</tr>`;
+                <td>${escHtml(s.full_name_display)}</td>
+                <td>${escHtml(gs || '—')}</td>
+                <td style="text-align:center;">${s.total_demerits ?? '0'}</td>
+                <td style="text-align:center;${standingClass(s.status)}">${escHtml(s.status || '—')}</td>
+                <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
+            </tr>`;
         }).join('');
 
-        initPagination('student-records', 'tbody-student-records', 6);
+        initPagination('student-records', 'tbody-student-records', 10);
 
     } catch(err) {
         console.error('loadStudentOffenseRecords:', err);
