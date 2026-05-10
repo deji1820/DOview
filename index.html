@@ -1674,13 +1674,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="records-table-wrapper">
                     <table class="reports-table">
                         <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th><div style="display:flex;flex-direction:column;gap:4px;"><span>Offense</span><select id="sorOffenseFilter" class="col-header-filter" onchange="applyStudentRecordFilters()"><option value="">All Offenses</option></select></div></th>
-                                <th><div style="display:flex;flex-direction:column;gap:4px;"><span>Level</span><select id="sorLevelFilter" class="col-header-filter" onchange="sorLevelChanged()"><option value="">All Levels</option><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option></select></div></th>
-                                <th>Date</th><th>Reported by</th><th>Remarks</th><th>Action</th>
-                            </tr>
-                        </thead>
+    <tr>
+        <th>Name</th>
+        <th>Grade &amp; Section</th>
+        <th>Total Demerits</th>
+        <th>GMRC Grade</th>
+        <th>Standing</th>
+        <th>Action</th>
+    </tr>
+</thead>
                         <tbody id="tbody-student-records"></tbody>
                     </table>
                     <div class="pagination-container">
@@ -2841,35 +2843,54 @@ function escJs(s)   { return s ? String(s).replace(/\\/g,'\\\\').replace(/'/g,"\
 async function loadStudentOffenseRecords() {
     const tbody = document.getElementById('tbody-student-records');
     if (!tbody) return;
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">Loading students…</td></tr>`;
-    const students = await fetchStudents();
-    
-    // Filter: only students who have at least one offense
-    const withOffenses = students.filter(s => s.latest_offense && s.latest_offense !== '—' && s.latest_offense !== null);
-    
-    if (!withOffenses.length) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
-        initPagination('student-records', 'tbody-student-records', 10);
-        return;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">Loading students…</td></tr>`;
+
+    try {
+        // Fetch GMRC data which already has offense counts, demerits, status
+        const res  = await apiFetch(`${API_BASE}/get_gmrc.php`);
+        const data = await res.json();
+
+        if (!data.success || !data.students || !data.students.length) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
+            initPagination('student-records', 'tbody-student-records', 10);
+            return;
+        }
+
+        // Only show students who have at least 1 offense (demerits > 0)
+        const withOffenses = data.students.filter(s => parseInt(s.total_demerits) > 0);
+
+        if (!withOffenses.length) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">No students with offense records found.</td></tr>`;
+            initPagination('student-records', 'tbody-student-records', 10);
+            return;
+        }
+
+        const standingClass = (status) => {
+            if (!status) return '';
+            if (status === 'Conduct Probation') return 'color:#dc3545;font-weight:600;';
+            if (status === 'Warning')           return 'color:#e67e22;font-weight:600;';
+            if (status === 'Good Standing')     return 'color:#28a745;font-weight:600;';
+            return 'font-weight:600;';
+        };
+
+        tbody.innerHTML = withOffenses.map(s => {
+            const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
+            return `<tr>
+                <td>${escHtml(s.full_name_display)}</td>
+                <td>${escHtml(gs || '—')}</td>
+                <td style="text-align:center;">${s.total_demerits ?? '0'}</td>
+                <td style="text-align:center;color:#dc3545;font-weight:700;">${s.gmrc_grade ?? '—'}</td>
+                <td style="text-align:center;${standingClass(s.status)}">${escHtml(s.status || '—')}</td>
+                <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
+            </tr>`;
+        }).join('');
+
+        initPagination('student-records', 'tbody-student-records', 6);
+
+    } catch(err) {
+        console.error('loadStudentOffenseRecords:', err);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:30px;">Failed to load.</td></tr>`;
     }
-    tbody.innerHTML = withOffenses.map(s => {
-        const gs      = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
-        const offense  = escHtml(s.latest_offense  || '—');
-        const level    = s.latest_level             || '—';
-        const date     = s.latest_date              || '—';
-        const reporter = escHtml(s.latest_reporter  || '—');
-        const remarks  = escHtml(s.latest_remarks   || '—');
-        return `<tr>
-            <td>${escHtml(s.full_name_display)}</td>
-            <td>${offense}</td>
-            <td>${level}</td>
-            <td>${date}</td>
-            <td>${reporter}</td>
-            <td>${remarks}</td>
-            <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
-        </tr>`;
-    }).join('');
-    initPagination('student-records', 'tbody-student-records', 10);
 }
 
 function initStudentRecordSearch() {
@@ -2884,7 +2905,7 @@ function initStudentRecordSearch() {
             if (!val) { await loadStudentOffenseRecords(); return; }
             tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">Searching…</td></tr>`;
             const students = await fetchStudents({ search: val });
-            if (!students.length) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px;">No results for "${escHtml(val)}".</td></tr>`; return; }
+            if (!students.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px;">No results for "${escHtml(val)}".</td></tr>`; return; }
             tbody.innerHTML = students.map(s => {
                 const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
                 return `<tr>
@@ -3136,7 +3157,7 @@ function sorPopulateOffenseFilter(level) {
     sel.innerHTML = '<option value="">All Offenses</option>';
     (sorOffensesByLevel[level]||[]).forEach(o => { const opt=document.createElement('option'); opt.value=o; opt.textContent=o; sel.appendChild(opt); });
 }
-function sorLevelChanged() { sorPopulateOffenseFilter(document.getElementById('sorLevelFilter').value); applyStudentRecordFilters(); }
+
 function applyStudentRecordFilters() {
     const search  = (document.getElementById('sorSearchInput').value || '').toLowerCase();
     const level   = document.getElementById('sorLevelFilter').value;
