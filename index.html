@@ -1668,20 +1668,45 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="studentRecordsPage" class="student-records-page hidden">
             <button class="back-button" onclick="backToOffenseManagement()"><div class="back-icon">←</div><span>Student Offense Records</span></button>
             <div class="records-container">
-                <div class="search-filter-bar">
-                    <input type="text" class="search-input" id="sorSearchInput" placeholder="Search Student Name or Student ID" oninput="applyStudentRecordFilters()">
-                </div>
-                <div class="records-table-wrapper">
-                    <table class="reports-table">
-                        <thead>
-    <tr>
-    <th>Name</th>
-    <th>Grade &amp; Section</th>
-    <th>Total Demerits</th>
-    <th>Standing</th>
-    <th>Action</th>
-</tr>
-</thead>
+                <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center;flex-wrap:wrap;">
+    <input type="text" class="search-input" id="sorSearchInput"
+        placeholder="Search Student Name or Student ID"
+        oninput="applyStudentRecordFilters()"
+        style="flex:1;min-width:200px;padding:11px 16px;font-size:14px;">
+    <select id="sorStandingFilter" onchange="applyStudentRecordFilters()"
+        style="padding:11px 36px 11px 14px;border:2px solid #ddd;border-radius:8px;
+               font-family:'Outfit',sans-serif;font-size:14px;color:var(--dark-navy);
+               background:#fff;cursor:pointer;appearance:none;min-width:180px;
+               background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%232d2550' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E\");
+               background-repeat:no-repeat;background-position:right 12px center;background-size:11px;">
+        <option value="">All Standings</option>
+        <option value="Good Standing">Good Standing</option>
+        <option value="Warning">Warning</option>
+        <option value="Conduct Probation">Conduct Probation</option>
+    </select>
+    <select id="sorSortFilter" onchange="applyStudentRecordFilters()"
+        style="padding:11px 36px 11px 14px;border:2px solid #ddd;border-radius:8px;
+               font-family:'Outfit',sans-serif;font-size:14px;color:var(--dark-navy);
+               background:#fff;cursor:pointer;appearance:none;min-width:200px;
+               background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%232d2550' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E\");
+               background-repeat:no-repeat;background-position:right 12px center;background-size:11px;">
+        <option value="">Sort: Default</option>
+        <option value="demerits-desc">Highest Demerits First</option>
+        <option value="demerits-asc">Lowest Demerits First</option>
+        <option value="name-asc">Name A–Z</option>
+    </select>
+</div>
+<div class="records-table-wrapper">
+    <table class="reports-table">
+        <thead>
+            <tr>
+                <th style="text-align:left;">Name</th>
+                <th style="text-align:left;">Grade &amp; Section</th>
+                <th style="text-align:center;">Total Demerits</th>
+                <th style="text-align:center;">Standing</th>
+                <th style="text-align:center;">Action</th>
+            </tr>
+        </thead>
                         <tbody id="tbody-student-records"></tbody>
                     </table>
                     <div class="pagination-container">
@@ -2888,16 +2913,15 @@ async function loadStudentOffenseRecords() {
         };
 
         tbody.innerHTML = withOffenses.map(s => {
-            const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
-            return `<tr>
-                <td>${escHtml(s.full_name_display)}</td>
-                <td>${escHtml(gs || '—')}</td>
-                <td style="text-align:center;">${s.total_demerits ?? '0'}</td>
-                <td style="text-align:center;${standingClass(s.status)}">${escHtml(s.status || '—')}</td>
-                <td><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
-            </tr>`;
-        }).join('');
-
+    const gs = [s.grade_level, s.section_name].filter(Boolean).join(' - ');
+    return `<tr>
+        <td style="text-align:left;">${escHtml(s.full_name_display)}</td>
+        <td style="text-align:left;">${escHtml(gs || '—')}</td>
+        <td style="text-align:center;">${s.total_demerits ?? '0'}</td>
+        <td style="text-align:center;${standingClass(s.status)}">${escHtml(s.status || '—')}</td>
+        <td style="text-align:center;"><a class="action-link" href="#" onclick="navigateToStudentRecordsDetail('${escJs(s.full_name_display)}','${escJs(gs)}','${escJs(s.adviser_name||'')}','${escJs(s.student_number)}'); return false;">View</a></td>
+    </tr>`;
+}).join('');
         initPagination('student-records', 'tbody-student-records', 10);
 
     } catch(err) {
@@ -3167,14 +3191,41 @@ function sorPopulateOffenseFilter(level) {
 
 // FIND and REPLACE the entire applyStudentRecordFilters function:
 function applyStudentRecordFilters() {
-    const search = (document.getElementById('sorSearchInput').value || '').toLowerCase();
+    const search   = (document.getElementById('sorSearchInput').value || '').toLowerCase();
+    const standing = (document.getElementById('sorStandingFilter') || {}).value || '';
+    const sort     = (document.getElementById('sorSortFilter') || {}).value || '';
 
-    Array.from(document.querySelectorAll('#tbody-student-records tr')).forEach(row => {
-        const name = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
-        const gs   = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
-        const show = !search || name.includes(search) || gs.includes(search);
-        row.dataset.filtered = show ? 'false' : 'true';
+    const tbody = document.getElementById('tbody-student-records');
+    if (!tbody) return;
+
+    // Filter rows
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    allRows.forEach(row => {
+        const name     = row.cells[0] ? row.cells[0].textContent.toLowerCase() : '';
+        const gs       = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
+        const rowStand = row.cells[3] ? row.cells[3].textContent.trim() : '';
+        const matchSearch   = !search   || name.includes(search) || gs.includes(search);
+        const matchStanding = !standing || rowStand === standing;
+        row.dataset.filtered = (matchSearch && matchStanding) ? 'false' : 'true';
     });
+
+    // Sort visible rows
+    if (sort) {
+        const visibleRows = allRows.filter(r => r.dataset.filtered !== 'true');
+        visibleRows.sort((a, b) => {
+            if (sort === 'demerits-desc' || sort === 'demerits-asc') {
+                const da = parseInt(a.cells[2] ? a.cells[2].textContent : '0') || 0;
+                const db = parseInt(b.cells[2] ? b.cells[2].textContent : '0') || 0;
+                return sort === 'demerits-desc' ? db - da : da - db;
+            }
+            if (sort === 'name-asc') {
+                return (a.cells[0] ? a.cells[0].textContent : '').localeCompare(b.cells[0] ? b.cells[0].textContent : '');
+            }
+            return 0;
+        });
+        // Re-append in sorted order
+        visibleRows.forEach(r => tbody.appendChild(r));
+    }
 
     if (paginationState['student-records']) {
         paginationState['student-records'].currentPage = 1;
