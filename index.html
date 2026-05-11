@@ -1947,7 +1947,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="history-container">
                 <div class="history-table-wrapper">
                     <table class="history-table document-submission-table">
-                        <thead><tr><th>Student Name</th><th><div style="display:flex;flex-direction:column;gap:4px;"><span>Grade & Section</span><select id="dsGradeFilter" class="col-header-filter" onchange="applyDocSubmissionFilters()"><option value="">All</option></select></div></th><th>Supporting Document</th><th><div style="display:flex;flex-direction:column;gap:4px;"><span>Date Submitted</span><input type="date" id="dsDateFilter" class="col-header-filter" style="padding:4px 7px;font-size:11px;" onchange="applyDocSubmissionFilters()"></div></th><th>Status</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Student Name</th><th>Grade & Section</th><th>Supporting Document</th><th><div style="display:flex;flex-direction:column;gap:4px;"><span>Date Submitted</span><input type="date" id="dsDateFilter" class="col-header-filter" style="padding:4px 7px;font-size:11px;" onchange="applyDocSubmissionFilters()"></div></th><th>Status</th><th>Action</th></tr></thead>
                         <tbody id="tbody-doc-submission"></tbody>
                     </table>
                     <div class="pagination-container">
@@ -3518,15 +3518,14 @@ const matchSearch = !search || name.includes(search) || gs.includes(search) || s
 //  DOCUMENT FILTERS
 // ════════════════════════════════════════════════════════════
 function applyDocSubmissionFilters() {
-    const grade = document.getElementById('dsGradeFilter').value;
-    const date  = document.getElementById('dsDateFilter').value;
-    let fd=''; if(date){const[y,m,d]=date.split('-');fd=`${m}/${d}/${y}`;}
+    const date = document.getElementById('dsDateFilter').value;
     Array.from(document.querySelectorAll('#tbody-doc-submission tr')).forEach(row => {
-        const rg=row.cells[1]?row.cells[1].textContent.trim():'';
-        const rd=row.cells[3]?row.cells[3].textContent.trim():'';
-        row.style.display=((!grade||rg===grade)&&(!fd||rd===fd))?'':'none';
+        const rd = row.cells[3] ? row.cells[3].textContent.trim() : '';
+        const match = !date || rd === date;
+        row.dataset.filtered = match ? 'false' : 'true';
     });
-    initPagination('doc-submission','tbody-doc-submission',10);
+    if (paginationState['doc-submission']) paginationState['doc-submission'].currentPage = 1;
+    renderPagination('doc-submission');
 }
 function applyDocRequestFilters() {
     const grade = document.getElementById('drGradeFilter').value;
@@ -4123,12 +4122,7 @@ async function loadDocumentSubmissions() {
         }
  
         // Populate grade filter dropdown
-        const gradeFilter = document.getElementById('dsGradeFilter');
-        if (gradeFilter) {
-            const grades = [...new Set(data.submissions.map(s => s.grade_level))].sort();
-            gradeFilter.innerHTML = '<option value="">All</option>' +
-                grades.map(g => `<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
-        }
+        
  
         tbody.innerHTML = data.submissions.map(s => {
     const statusClass = s.display_status === 'Approved' ? 'status-approved'
