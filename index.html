@@ -1878,13 +1878,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="referral-header">
     <h2 class="referral-title">Referral History</h2>
     <div style="display:flex;align-items:center;gap:15px;">
-        <input type="date" id="referralHistoryDateFilter" class="date-selector"
-            onchange="filterReferralHistoryByDate(this.value)"
-            title="Filter by date">
-        <button class="btn-edit-history" onclick="clearReferralDateFilter()"
-            style="padding:10px 20px;">Clear</button>
-        <button class="btn-new-referral" onclick="showNewReferralForm()">+ New Referral</button>
-    </div>
+    <input type="date" id="referralHistoryDateFilter" class="date-selector"
+        onchange="filterReferralHistoryByDate(this.value)"
+        title="Filter by date">
+    <button class="btn-new-referral" onclick="showNewReferralForm()">+ New Referral</button>
+</div>
 </div>
                     <div class="referral-history-table-wrapper">
                         <table class="referral-history-table">
@@ -2416,6 +2414,8 @@ function navigateToCounselingReferral() {
     document.getElementById('referralHistory').style.display='block'; 
     updateActiveNav(1); 
     updateTopBar('📋','Counseling Referral',''); 
+    const picker = document.getElementById('referralHistoryDateFilter');
+    if (picker) picker.value = '';
     loadReferralHistory(); 
 }
 
@@ -2798,7 +2798,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
             try {
-                const res  = await apiFetch(`${API_BASE}/add_referral.php`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_number:studentNumber,date_sent:dateSent,remarks,offense_record:offenseRecord})});
+                const res  = await apiFetch(`${API_BASE}/add_referral.php`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_number:studentNumber,date_sent:dateSent,remarks})});
                 const data = await res.json();
                 if (data.success) {
                     document.getElementById('referralSentModal').classList.remove('hidden');
@@ -4045,18 +4045,15 @@ function prependToReferralHistory(data) {
 function filterReferralHistoryByDate(dateVal) {
     const rows = Array.from(document.querySelectorAll('#tbody-referral-history tr'));
     rows.forEach(row => {
-        if (!dateVal) {
+        if (!dateVal || !row.cells[4]) {
             row.dataset.filtered = 'false';
             return;
         }
-        // Date sent is in the 5th column (index 4)
-        const cellText = row.cells[4] ? row.cells[4].textContent.trim() : '';
-        // cellText may be "2025-07-17" or "July 17, 2025" — normalize both
+        const cellText = row.cells[4].textContent.trim();
         let rowDate = '';
         if (cellText.match(/^\d{4}-\d{2}-\d{2}$/)) {
             rowDate = cellText;
         } else {
-            // Try parsing "Month DD, YYYY"
             const parsed = new Date(cellText);
             if (!isNaN(parsed)) {
                 rowDate = parsed.toISOString().split('T')[0];
@@ -4528,7 +4525,7 @@ window.updateDocStatus = async function(documentId, newStatus, linkEl){
             }
             sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
             try {
-                const res  = await apiFetch(`${API_BASE}/add_referral.php`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_number:studentNumber,date_sent:dateSent,remarks,offense_record:offenseRecord})});
+                const res  = await apiFetch(`${API_BASE}/add_referral.php`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({student_number:studentNumber,date_sent:dateSent,remarks})});
                 const data = await res.json();
                 if (data.success) {
                     document.getElementById('referralSentModal').classList.remove('hidden');
