@@ -1614,14 +1614,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- ── HOME ─────────────────────────────────────────── -->
         <div id="dashboardHome" class="dashboard-content">
   <!-- STAT CARDS -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;">
     <div style="background:var(--dark-navy);border-radius:10px;padding:18px 14px;text-align:center;cursor:pointer;" onclick="navigateToDailyReports()">
       <div style="font-size:11px;color:rgba(245,197,99,0.75);font-weight:500;margin-bottom:6px;line-height:1.4;">Daily Offense</div>
       <div id="statDailyOffense" style="font-size:32px;font-weight:600;color:#f5c563;">—</div>
-    </div>
-    <div style="background:var(--dark-navy);border-radius:10px;padding:18px 14px;text-align:center;cursor:pointer;" onclick="navigateToDailyReports()">
-      <div style="font-size:11px;color:rgba(245,197,99,0.75);font-weight:500;margin-bottom:6px;line-height:1.4;">Pending Offense Report</div>
-      <div id="statPendingOffense" style="font-size:32px;font-weight:600;color:#f5c563;">—</div>
     </div>
     <div style="background:var(--dark-navy);border-radius:10px;padding:18px 14px;text-align:center;cursor:pointer;" onclick="navigateToDocumentSubmission()">
       <div style="font-size:11px;color:rgba(245,197,99,0.75);font-weight:500;margin-bottom:6px;line-height:1.4;">Pending Document Submission</div>
@@ -3919,9 +3915,6 @@ async function loadDashboardStats() {
     document.getElementById('statDailyOffense').textContent = daily;
 
     // Pending offense reports (no remarks/evidence = pending)
-    const pending = d1.success ? (d1.violations || []).filter(v => !v.remarks || v.remarks === 'N/A').length : 0;
-    document.getElementById('statPendingOffense').textContent = pending;
-
     // Pending document submissions
     const r2 = await apiFetch(`${API_BASE}/get_document_submissions.php`);
     const d2 = await r2.json();
