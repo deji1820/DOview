@@ -3945,6 +3945,8 @@ if (!data.success || !data.violations.length) {
     return;
 }
 
+data.violations.reverse();
+
 // Fetch grade/section for each unique student
 const uniqueNumbers = [...new Set(data.violations.map(v => v.student_number))];
 const studentMap = {};
