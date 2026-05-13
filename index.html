@@ -2319,32 +2319,68 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
             </div>
         </div>
 
-        <!-- ── GMRC GRADE ─────────────────────────────────────── -->
 <!-- ── GMRC GRADE ─────────────────────────────────────── -->
 <div id="gmrcPage" class="gmrc-page hidden">
-    <div class="gmrc-content-wrapper">
-        <div class="gmrc-filters">
-            <input type="text" class="gmrc-search" placeholder="Search Student or Section" id="gmrcSearchInput">
-            <select class="gmrc-filter-select" id="gradeFilter">
-                <option value="">All Grades</option>
-                <option value="Grade 1">Grade 1</option>
-                <option value="Grade 2">Grade 2</option>
-                <option value="Grade 3">Grade 3</option>
-                <option value="Grade 4">Grade 4</option>
-                <option value="Grade 5">Grade 5</option>
-                <option value="Grade 6">Grade 6</option>
-                <option value="Grade 7">Grade 7</option>
-                <option value="Grade 8">Grade 8</option>
-                <option value="Grade 9">Grade 9</option>
-                <option value="Grade 10">Grade 10</option>
-                <option value="Grade 11">Grade 11</option>
-                <option value="Grade 12">Grade 12</option>
-            </select>
-        </div>
-        <div id="gmrc-sections-container" style="display:flex;flex-direction:column;gap:10px;">
-            <div style="text-align:center;color:#aaa;padding:40px;">Loading sections…</div>
-        </div>
+  <div class="gmrc-content-wrapper">
+
+    <!-- Filter Bar -->
+    <div style="background:#fff;border-radius:12px;border:1.5px solid #e5e7eb;
+                padding:20px 24px;margin-bottom:20px;display:flex;
+                align-items:flex-end;gap:14px;flex-wrap:wrap;">
+
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:180px;">
+        <label style="font-size:12px;font-weight:600;color:var(--dark-navy);
+                      text-transform:uppercase;letter-spacing:0.4px;">Grade Level</label>
+        <select id="gmrcGradeFilter" onchange="onGMRCGradeChange()"
+          style="padding:10px 36px 10px 14px;border:1.5px solid #ddd;border-radius:8px;
+                 font-family:'Outfit',sans-serif;font-size:14px;color:var(--dark-navy);
+                 background:#fff;cursor:pointer;appearance:none;
+                 background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%231e1838' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E\");
+                 background-repeat:no-repeat;background-position:right 12px center;background-size:11px;">
+          <option value="">— Select Grade —</option>
+        </select>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:200px;">
+        <label style="font-size:12px;font-weight:600;color:var(--dark-navy);
+                      text-transform:uppercase;letter-spacing:0.4px;">Section</label>
+        <select id="gmrcSectionFilter"
+          style="padding:10px 36px 10px 14px;border:1.5px solid #ddd;border-radius:8px;
+                 font-family:'Outfit',sans-serif;font-size:14px;color:var(--dark-navy);
+                 background:#fff;cursor:pointer;appearance:none;
+                 background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%231e1838' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E\");
+                 background-repeat:no-repeat;background-position:right 12px center;background-size:11px;">
+          <option value="">— Select Grade First —</option>
+        </select>
+      </div>
+
+      <button onclick="confirmGMRCFilter()"
+        style="padding:10px 28px;background:var(--dark-navy);color:var(--gold);border:none;
+               border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
+               cursor:pointer;height:42px;transition:all 0.2s;white-space:nowrap;
+               box-shadow:0 2px 8px rgba(30,24,56,0.18);"
+        onmouseenter="this.style.background='#16122e'"
+        onmouseleave="this.style.background='var(--dark-navy)'">
+        View Students
+      </button>
+
+      <button id="gmrcPrintBtn" onclick="printGMRCStudentList()" style="display:none;
+        padding:10px 22px;background:#fff;color:var(--dark-navy);border:1.5px solid var(--dark-navy);
+        border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;
+        cursor:pointer;height:42px;transition:all 0.2s;white-space:nowrap;gap:6px;
+        display:none;align-items:center;">
+        🖨️ Print List
+      </button>
     </div>
+
+    <!-- Results area -->
+    <div id="gmrc-results-container">
+      <div style="text-align:center;padding:60px 20px;color:#bbb;font-size:14px;">
+        Select a grade and section above, then click <strong>View Students</strong>.
+      </div>
+    </div>
+
+  </div>
 </div>
 
         <!-- ── GMRC INDIVIDUAL ───────────────────────────────── -->
@@ -3668,94 +3704,335 @@ async function lookupReferralStudent(val) {
 // ════════════════════════════════════════════════════════════
 let allSections = [];
 
+let _gmrcAllSections   = [];   // [{section_id, section_name, grade_level, adviser_name}]
+let _gmrcCurrentSec    = null; // currently displayed section object
+let _gmrcCurrentStudents = []; // currently displayed student rows
+
 async function loadGMRCSections() {
-    const container = document.getElementById('gmrc-sections-container');
-    container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">Loading sections…</div>`;
     try {
         const res  = await apiFetch(`${API_BASE}/get_sections.php`);
         const data = await res.json();
-        if (!data.success || !data.sections.length) {
-            container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No sections found.</div>`;
-            return;
-        }
-        allSections = data.sections;
-        renderGMRCSections(allSections);
+        _gmrcAllSections = (data.success && data.sections) ? data.sections : [];
+        populateGMRCGradeFilter();
     } catch(err) {
         console.error('loadGMRCSections:', err);
-        container.innerHTML = `<div style="text-align:center;color:#dc3545;padding:40px;">Failed to load sections.</div>`;
     }
 }
 
-function renderGMRCSections(sections) {
-    const container = document.getElementById('gmrc-sections-container');
-    if (!sections.length) {
-        container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No sections match your filter.</div>`;
+function populateGMRCGradeFilter() {
+    const sel = document.getElementById('gmrcGradeFilter');
+    if (!sel) return;
+    const grades = [...new Set(_gmrcAllSections.map(s => s.grade_level))]
+        .filter(Boolean)
+        .sort((a, b) => parseInt(a) - parseInt(b));
+    sel.innerHTML = '<option value="">— Select Grade —</option>' +
+        grades.map(g => `<option value="${g}">Grade ${escHtml(g)}</option>`).join('');
+    document.getElementById('gmrcSectionFilter').innerHTML = '<option value="">— Select Grade First —</option>';
+}
+
+function onGMRCGradeChange() {
+    const grade = document.getElementById('gmrcGradeFilter').value;
+    const secSel = document.getElementById('gmrcSectionFilter');
+    if (!grade) {
+        secSel.innerHTML = '<option value="">— Select Grade First —</option>';
         return;
     }
-    container.innerHTML = sections.map(sec => `
-        <div class="gmrc-class-card" id="gmrc-card-${sec.section_id}">
-            <div class="gmrc-class-header" style="cursor:pointer;" onclick="toggleGMRCSection(${sec.section_id})">
-                <div class="gmrc-class-info">
-                    <strong>Grade & Section:</strong> ${escHtml(sec.grade_level)} - ${escHtml(sec.section_name)}<br>
-                    <strong>Adviser:</strong> ${escHtml(sec.adviser_name || '—')}
-                </div>
-                <div class="gmrc-action-buttons">
-                    <button class="btn-gmrc-action btn-gmrc-print" onclick="event.stopPropagation();printGMRCSection(${sec.section_id})">Print</button>
-                    <span id="gmrc-arrow-${sec.section_id}" style="color:var(--gold);font-size:18px;margin-left:10px;">▶</span>
-                </div>
-            </div>
-            <div class="gmrc-table-wrapper" id="gmrc-table-${sec.section_id}" style="display:none;">
-                <table class="gmrc-grade-table">
-                    <thead><tr><th>Name</th><th>Total Demerits</th><th>Status</th><th>Action</th></tr></thead>
-                    <tbody id="gmrc-tbody-${sec.section_id}">
-                        <tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Loading…</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `).join('');
+    const sections = _gmrcAllSections.filter(s => s.grade_level === grade);
+    secSel.innerHTML = '<option value="">— Select Section —</option>' +
+        sections.map(s =>
+            `<option value="${s.section_id}">${escHtml(s.section_name)}</option>`
+        ).join('');
 }
 
-async function loadGMRCSectionStudents(sectionId) {
-    const tbody = document.getElementById(`gmrc-tbody-${sectionId}`);
-    if (!tbody) return;
+async function confirmGMRCFilter() {
+    const grade    = document.getElementById('gmrcGradeFilter').value;
+    const secId    = document.getElementById('gmrcSectionFilter').value;
+    const container = document.getElementById('gmrc-results-container');
+    const printBtn  = document.getElementById('gmrcPrintBtn');
+
+    if (!grade) {
+        container.innerHTML = `<div style="text-align:center;padding:40px;color:#dc3545;font-size:14px;">Please select a grade level.</div>`;
+        printBtn.style.display = 'none';
+        return;
+    }
+    if (!secId) {
+        container.innerHTML = `<div style="text-align:center;padding:40px;color:#dc3545;font-size:14px;">Please select a section.</div>`;
+        printBtn.style.display = 'none';
+        return;
+    }
+
+    _gmrcCurrentSec = _gmrcAllSections.find(s => String(s.section_id) === String(secId)) || null;
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;font-size:14px;">Loading students…</div>`;
+    printBtn.style.display = 'none';
+
     try {
-        const res  = await apiFetch(`${API_BASE}/get_gmrc.php?section_id=${sectionId}`);
+        const res  = await apiFetch(`${API_BASE}/get_gmrc.php?section_id=${secId}`);
         const data = await res.json();
-        if (!data.success || !data.students.length) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">No students.</td></tr>`;
-            return;
+        _gmrcCurrentStudents = (data.success && data.students) ? data.students : [];
+        renderGMRCStudentTable(_gmrcCurrentStudents, _gmrcCurrentSec);
+        if (_gmrcCurrentStudents.length) {
+            printBtn.style.display = 'inline-flex';
         }
-        tbody.innerHTML = data.students.map(s => `
-            <tr>
-                <td>${escHtml(s.full_name_display)}</td>
-                <td>${s.total_demerits}</td>
-                <td class="${s.status === 'Conduct Probation' ? 'status-conduct-probation' : s.status === 'Warning' ? 'grade-red' : ''}">${escHtml(s.status)}</td>
-                <td><a href="#" class="gmrc-view-link" onclick="viewStudentGMRC('${escJs(s.full_name_display)}','${escJs(s.student_number)}','${escJs(s.grade_level)}','${escJs(s.section_name)}'); return false;">View</a></td>
-            </tr>
-        `).join('');
     } catch(err) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#dc3545;padding:20px;">Failed to load.</td></tr>`;
+        console.error('confirmGMRCFilter:', err);
+        container.innerHTML = `<div style="text-align:center;padding:40px;color:#dc3545;font-size:14px;">Failed to load students.</div>`;
     }
 }
 
-function initGMRCFilters() {
-    const gradeFilter = document.getElementById('gradeFilter');
-    const searchInput = document.getElementById('gmrcSearchInput');
+function renderGMRCStudentTable(students, sec) {
+    const container = document.getElementById('gmrc-results-container');
 
-    if (gradeFilter && !gradeFilter._wired) {
-        gradeFilter.addEventListener('change', applyGMRCFilters);
-        gradeFilter._wired = true;
+    if (!students.length) {
+        container.innerHTML = `
+            <div style="background:#fff;border-radius:12px;border:1.5px solid #e5e7eb;
+                        padding:48px;text-align:center;color:#aaa;font-size:14px;">
+                No students found in this section.
+            </div>`;
+        return;
     }
-    if (searchInput && !searchInput._wired) {
-        let _gmrcSearchTimer;
-        searchInput.addEventListener('input', () => {
-            clearTimeout(_gmrcSearchTimer);
-            _gmrcSearchTimer = setTimeout(applyGMRCFilters, 400);
-        });
-        searchInput._wired = true;
-    }
+
+    const adviserName = sec?.adviser_name || '—';
+    const gradeLabel  = sec ? `Grade ${sec.grade_level} — ${sec.section_name}` : '—';
+
+    const statusStyle = (status) => {
+        if (status === 'Conduct Probation') return 'color:#dc3545;font-weight:700;';
+        if (status === 'Warning')           return 'color:#e67e22;font-weight:600;';
+        return 'color:#28a745;font-weight:600;';
+    };
+
+    const rows = students.map(s => {
+        const gs = [s.grade_level, s.section_name].filter(Boolean).join(' — ');
+        return `<tr>
+            <td style="padding:12px 16px;font-size:13px;color:#888;">${escHtml(s.student_number || '—')}</td>
+            <td style="padding:12px 16px;font-size:13px;font-weight:500;">${escHtml(s.full_name_display)}</td>
+            <td style="padding:12px 16px;font-size:13px;text-align:center;">${s.total_demerits ?? 0}</td>
+            <td style="padding:12px 16px;font-size:13px;text-align:center;${statusStyle(s.status)}">${escHtml(s.status || '—')}</td>
+            <td style="padding:12px 16px;font-size:13px;text-align:center;">
+                <a href="#" class="gmrc-view-link"
+                   onclick="viewStudentGMRC('${escJs(s.full_name_display)}','${escJs(s.student_number)}','${escJs(s.grade_level)}','${escJs(s.section_name)}'); return false;">
+                   View
+                </a>
+            </td>
+        </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+        <div style="background:#fff;border-radius:12px;border:1.5px solid #e5e7eb;overflow:hidden;">
+
+            <!-- Section header strip -->
+            <div style="background:var(--dark-navy);padding:16px 24px;
+                        display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div style="font-size:15px;font-weight:700;color:var(--gold);">${escHtml(gradeLabel)}</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px;">
+                        Class Adviser: <strong style="color:rgba(255,255,255,0.85);">${escHtml(adviserName)}</strong>
+                        &nbsp;·&nbsp; ${students.length} student${students.length !== 1 ? 's' : ''}
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <div style="background:rgba(212,166,80,0.12);border-radius:8px;padding:8px 16px;text-align:center;">
+                        <div style="font-size:10px;color:rgba(212,166,80,0.7);font-weight:600;
+                                    text-transform:uppercase;letter-spacing:0.4px;">Good Standing</div>
+                        <div style="font-size:20px;font-weight:700;color:var(--gold);">
+                            ${students.filter(s => s.status === 'Good Standing').length}
+                        </div>
+                    </div>
+                    <div style="background:rgba(212,166,80,0.12);border-radius:8px;padding:8px 16px;text-align:center;">
+                        <div style="font-size:10px;color:rgba(212,166,80,0.7);font-weight:600;
+                                    text-transform:uppercase;letter-spacing:0.4px;">Warning</div>
+                        <div style="font-size:20px;font-weight:700;color:var(--gold);">
+                            ${students.filter(s => s.status === 'Warning').length}
+                        </div>
+                    </div>
+                    <div style="background:rgba(212,166,80,0.12);border-radius:8px;padding:8px 16px;text-align:center;">
+                        <div style="font-size:10px;color:rgba(212,166,80,0.7);font-weight:600;
+                                    text-transform:uppercase;letter-spacing:0.4px;">Probation</div>
+                        <div style="font-size:20px;font-weight:700;color:var(--gold);">
+                            ${students.filter(s => s.status === 'Conduct Probation').length}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f8f8f8;">
+                        <th style="padding:11px 16px;text-align:left;font-size:11px;font-weight:600;
+                                   color:var(--dark-navy);border-bottom:1.5px solid #e5e7eb;
+                                   text-transform:uppercase;letter-spacing:0.4px;">Student ID</th>
+                        <th style="padding:11px 16px;text-align:left;font-size:11px;font-weight:600;
+                                   color:var(--dark-navy);border-bottom:1.5px solid #e5e7eb;
+                                   text-transform:uppercase;letter-spacing:0.4px;">Name</th>
+                        <th style="padding:11px 16px;text-align:center;font-size:11px;font-weight:600;
+                                   color:var(--dark-navy);border-bottom:1.5px solid #e5e7eb;
+                                   text-transform:uppercase;letter-spacing:0.4px;">Total Demerits</th>
+                        <th style="padding:11px 16px;text-align:center;font-size:11px;font-weight:600;
+                                   color:var(--dark-navy);border-bottom:1.5px solid #e5e7eb;
+                                   text-transform:uppercase;letter-spacing:0.4px;">Standing</th>
+                        <th style="padding:11px 16px;text-align:center;font-size:11px;font-weight:600;
+                                   color:var(--dark-navy);border-bottom:1.5px solid #e5e7eb;
+                                   text-transform:uppercase;letter-spacing:0.4px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
 }
+
+function printGMRCStudentList() {
+    if (!_gmrcCurrentStudents.length || !_gmrcCurrentSec) return;
+
+    const sec         = _gmrcCurrentSec;
+    const gradeLabel  = `Grade ${sec.grade_level} — ${sec.section_name}`;
+    const adviser     = sec.adviser_name || '—';
+    const today       = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+    const goodCount   = _gmrcCurrentStudents.filter(s => s.status === 'Good Standing').length;
+    const warnCount   = _gmrcCurrentStudents.filter(s => s.status === 'Warning').length;
+    const probCount   = _gmrcCurrentStudents.filter(s => s.status === 'Conduct Probation').length;
+
+    const rows = _gmrcCurrentStudents.map((s, i) => {
+        const statusColor = s.status === 'Conduct Probation' ? '#9b2c2c'
+                          : s.status === 'Warning'           ? '#92400e'
+                          : '#276749';
+        const statusBg    = s.status === 'Conduct Probation' ? '#fff5f5'
+                          : s.status === 'Warning'           ? '#fffbeb'
+                          : '#f0fff4';
+        return `<tr style="background:${i % 2 === 0 ? '#fff' : '#faf9ff'};">
+            <td style="padding:10px 14px;font-size:12px;color:#555;">${escHtml(s.student_number || '—')}</td>
+            <td style="padding:10px 14px;font-size:13px;font-weight:500;">${escHtml(s.full_name_display)}</td>
+            <td style="padding:10px 14px;font-size:13px;text-align:center;font-weight:700;">${s.total_demerits ?? 0}</td>
+            <td style="padding:10px 14px;font-size:12px;text-align:center;">
+                <span style="background:${statusBg};color:${statusColor};
+                             padding:3px 10px;border-radius:999px;font-weight:700;font-size:11px;">
+                    ${escHtml(s.status || '—')}
+                </span>
+            </td>
+        </tr>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GMRC Report — ${gradeLabel}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Arial,sans-serif; color:#1e1838; background:#fff; padding:44px 52px; }
+
+  .rpt-header { display:flex; align-items:flex-start; gap:20px;
+                padding-bottom:20px; border-bottom:3px solid #1e1838; margin-bottom:28px; }
+  .rpt-logo { width:64px; height:64px; border:3px solid #d4a650; flex-shrink:0;
+              display:flex; align-items:center; justify-content:center;
+              font-family:Georgia,serif; font-size:20px; font-weight:700;
+              color:#d4a650; letter-spacing:2px; }
+  .rpt-school-name { font-size:20px; font-weight:700; color:#1e1838; margin-bottom:3px; }
+  .rpt-school-sub  { font-size:13px; color:#555; }
+  .rpt-meta { margin-left:auto; text-align:right; }
+  .rpt-section-label { font-size:15px; font-weight:700; color:#1e1838; }
+  .rpt-adviser { font-size:12px; color:#888; margin-top:3px; }
+  .rpt-date    { font-size:11px; color:#aaa; margin-top:2px; }
+
+  .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+  .summary-box { border-radius:10px; padding:14px 12px; text-align:center; border-top:3px solid #1e1838; background:#f5f4fa; }
+  .summary-label { font-size:10px; font-weight:700; text-transform:uppercase;
+                   letter-spacing:0.5px; color:#555; margin-bottom:6px; }
+  .summary-value { font-size:28px; font-weight:700; color:#1e1838; }
+
+  table { width:100%; border-collapse:collapse; }
+  thead tr { background:#1e1838; }
+  th { padding:10px 14px; text-align:left; font-size:11px; font-weight:600;
+       color:#d4a650; text-transform:uppercase; letter-spacing:0.5px; }
+  th.center { text-align:center; }
+  .table-wrap { border:1px solid #e0e0e0; border-radius:10px; overflow:hidden; }
+
+  .rpt-footer { margin-top:32px; padding-top:14px; border-top:1px solid #e0e0e0;
+                display:flex; justify-content:space-between; font-size:11px; color:#aaa; }
+
+  @media print {
+    body { padding:24px 32px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+</head>
+<body>
+
+<div class="rpt-header">
+  <div class="rpt-logo">HIMC</div>
+  <div>
+    <div class="rpt-school-name">Holy Infant Montessori Center</div>
+    <div class="rpt-school-sub">Disciplinary Services — GMRC Student Record</div>
+  </div>
+  <div class="rpt-meta">
+    <div class="rpt-section-label">${escHtml(gradeLabel)}</div>
+    <div class="rpt-adviser">Class Adviser: ${escHtml(adviser)}</div>
+    <div class="rpt-date">Generated: ${today}</div>
+  </div>
+</div>
+
+<div class="summary-grid">
+  <div class="summary-box">
+    <div class="summary-label">Total Students</div>
+    <div class="summary-value">${_gmrcCurrentStudents.length}</div>
+  </div>
+  <div class="summary-box" style="border-top-color:#28a745;">
+    <div class="summary-label" style="color:#276749;">Good Standing</div>
+    <div class="summary-value" style="color:#276749;">${goodCount}</div>
+  </div>
+  <div class="summary-box" style="border-top-color:#f59e0b;">
+    <div class="summary-label" style="color:#92400e;">Warning</div>
+    <div class="summary-value" style="color:#92400e;">${warnCount}</div>
+  </div>
+  <div class="summary-box" style="border-top-color:#dc3545;">
+    <div class="summary-label" style="color:#9b2c2c;">Conduct Probation</div>
+    <div class="summary-value" style="color:#9b2c2c;">${probCount}</div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Student ID</th>
+        <th>Name</th>
+        <th class="center">Total Demerits</th>
+        <th class="center">Standing</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>
+
+<div class="rpt-footer">
+  <span>HIMC Disciplinary Services — For Internal Use Only</span>
+  <span>${escHtml(gradeLabel)} &nbsp;·&nbsp; Class Adviser: ${escHtml(adviser)}</span>
+</div>
+
+</body>
+</html>`;
+
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) { HimcModal.info('Pop-up Blocked', 'Please allow pop-ups for this site to print.'); return; }
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => { win.focus(); win.print(); };
+}
+function navigateToGMRC(e) {
+    if (e) e.preventDefault();
+    hideAllPages();
+    document.getElementById('gmrcPage').classList.remove('hidden');
+    updateActiveNav(3);
+    updateTopBar('📖', 'GMRC Grade', '');
+    // Reset results and print button
+    document.getElementById('gmrc-results-container').innerHTML =
+        `<div style="text-align:center;padding:60px 20px;color:#bbb;font-size:14px;">
+            Select a grade and section above, then click <strong>View Students</strong>.
+         </div>`;
+    document.getElementById('gmrcPrintBtn').style.display = 'none';
+    loadGMRCSections();
+}
+
+
 function openOffenseRecordModal() {
     const num = document.getElementById('referralStudentNumber').value.trim();
     if (!num) {
@@ -3769,98 +4046,9 @@ function closeOffenseRecordModal() {
     document.getElementById('offenseRecordModal').classList.add('hidden');
 }
 
-async function applyGMRCFilters() {
-    const grade  = document.getElementById('gradeFilter').value;
-    const search = document.getElementById('gmrcSearchInput').value.toLowerCase().trim();
 
-    // Grade-only filter — no search
-    if (!search) {
-        const filtered = allSections.filter(sec => {
-    if (!grade) return true;
-    const secGrade = String(sec.grade_level || '').trim();
-    const selGrade = String(grade).trim();
-    // Match "Grade 2" === "Grade 2", or "2" === "Grade 2", or "Grade 2" === "2"
-    return secGrade === selGrade ||
-           secGrade === selGrade.replace('Grade ', '') ||
-           'Grade ' + secGrade === selGrade;
-});
-        renderGMRCSections(filtered);
-        return;
-    }
 
-    // Student name / ID search across all (grade-filtered) sections
-    const container = document.getElementById('gmrc-sections-container');
-    container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">Searching…</div>`;
 
-    try {
-        const sectionsToSearch = allSections.filter(sec => {
-    if (!grade) return true;
-    const secGrade = String(sec.grade_level || '').trim();
-    const selGrade = String(grade).trim();
-    return secGrade === selGrade ||
-           secGrade === selGrade.replace('Grade ', '') ||
-           'Grade ' + secGrade === selGrade;
-});
-
-        const results = await Promise.all(sectionsToSearch.map(async sec => {
-            try {
-                const res  = await apiFetch(`${API_BASE}/get_gmrc.php?section_id=${sec.section_id}`);
-                const data = await res.json();
-                const students = (data.success && data.students) ? data.students : [];
-                const matched  = students.filter(s =>
-                    (s.full_name_display || '').toLowerCase().includes(search) ||
-                    (s.student_number   || '').toLowerCase().includes(search)
-                );
-                return { sec, matched };
-            } catch { return { sec, matched: [] }; }
-        }));
-
-        const hits = results.filter(r => r.matched.length > 0);
-
-        if (!hits.length) {
-            container.innerHTML = `<div style="text-align:center;color:#aaa;padding:40px;">No students found matching "<strong>${escHtml(search)}</strong>".</div>`;
-            return;
-        }
-
-        container.innerHTML = hits.map(({ sec, matched }) => `
-            <div class="gmrc-class-card" id="gmrc-card-${sec.section_id}">
-                <div class="gmrc-class-header" style="cursor:pointer;" onclick="toggleGMRCSection(${sec.section_id})">
-                    <div class="gmrc-class-info">
-                        <strong>Grade & Section:</strong> ${escHtml(sec.grade_level)} - ${escHtml(sec.section_name)}<br>
-                        <strong>Adviser:</strong> ${escHtml(sec.adviser_name || '—')}
-                    </div>
-                    <div class="gmrc-action-buttons">
-                        <button class="btn-gmrc-action btn-gmrc-print" onclick="event.stopPropagation();printGMRCSection(${sec.section_id})">Print</button>
-                        <span id="gmrc-arrow-${sec.section_id}" style="color:var(--gold);font-size:18px;margin-left:10px;">▼</span>
-                    </div>
-                </div>
-                <div class="gmrc-table-wrapper" id="gmrc-table-${sec.section_id}" style="display:block;">
-                    <table class="gmrc-grade-table">
-                        <thead><tr><th>Name</th><th>Total Demerits</th><th>Status</th><th>Action</th></tr></thead>
-                        <tbody id="gmrc-tbody-${sec.section_id}">
-                            ${matched.map(s => `
-                                <tr>
-                                    <td>${escHtml(s.full_name_display)}</td>
-                                    <td>${s.total_demerits}</td>
-                                    <td class="${s.status === 'Conduct Probation' ? 'status-conduct-probation' : s.status === 'Warning' ? 'grade-red' : ''}">${escHtml(s.status)}</td>
-                                    <td><a href="#" class="gmrc-view-link" onclick="viewStudentGMRC('${escJs(s.full_name_display)}','${escJs(s.student_number)}','${escJs(s.grade_level)}','${escJs(s.section_name)}'); return false;">View</a></td>
-                                </tr>`).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `).join('');
-
-    } catch(err) {
-        console.error('applyGMRCFilters:', err);
-        document.getElementById('gmrc-sections-container').innerHTML =
-            `<div style="text-align:center;color:#dc3545;padding:40px;">Search failed. Please try again.</div>`;
-    }
-}
-
-function printGMRCSection(sectionId) {
-    alert('Print functionality for section ' + sectionId + ' coming soon.');
-}
 
 // ════════════════════════════════════════════════════════════
 //  SOR FILTERS (offense / level dropdowns)
@@ -3878,14 +4066,7 @@ function sorPopulateOffenseFilter(level) {
     (sorOffensesByLevel[level]||[]).forEach(o => { const opt=document.createElement('option'); opt.value=o; opt.textContent=o; sel.appendChild(opt); });
 }
 
-function toggleGMRCSection(sectionId) {
-    const table = document.getElementById(`gmrc-table-${sectionId}`);
-    const arrow = document.getElementById(`gmrc-arrow-${sectionId}`);
-    const isHidden = table.style.display === 'none';
-    table.style.display = isHidden ? '' : 'none';
-    arrow.textContent = isHidden ? '▼' : '▶';
-    if (isHidden) loadGMRCSectionStudents(sectionId);
-}
+
 
 // FIND and REPLACE the entire applyStudentRecordFilters function:
 function applyStudentRecordFilters() {
