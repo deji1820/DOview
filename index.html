@@ -490,13 +490,20 @@ async function loadPrintSYOptions() {
     const sel = document.getElementById('prSYSelect');
     sel.innerHTML = '<option value="">Loading…</option>';
     try {
-        const res  = await apiFetch(`${API_BASE}/get_school_years.php`);
-        const data = await res.json();
-        const years = data.school_years || [];
+        const [syRes, qRes] = await Promise.all([
+            apiFetch(`${API_BASE}/get_school_years.php`).then(r => r.json()),
+            apiFetch(`${API_BASE}/get_quarter.php`).then(r => r.json())
+        ]);
+        const years = syRes.school_years || [];
         if (!years.length) { sel.innerHTML = '<option value="">No school years found</option>'; return; }
         sel.innerHTML = years.map(sy =>
             `<option value="${sy.id}" ${sy.is_active == 1 ? 'selected' : ''}>S.Y. ${escHtml(sy.label)}</option>`
         ).join('');
+
+        // Pre-select the active quarter
+        const activeQ = qRes.quarter || 1;
+        const qSel = document.getElementById('prQuarterSelect');
+        if (qSel) qSel.value = String(activeQ);
     } catch(e) {
         sel.innerHTML = '<option value="">Failed to load</option>';
     }
