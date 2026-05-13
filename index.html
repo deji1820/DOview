@@ -529,32 +529,44 @@ async function generatePrintReport() {
             : `school_year_id=${syId}`;
 
         const stats = await apiFetch(`${API_BASE}/get_archive_stats.php?${params}`)
-            .then(r => r.json()).catch(() => ({}));
+    .then(r => r.json()).catch(() => ({}));
 
-        // Also fetch live violations to compute level breakdown & top offenses
-        // (archive stats may not have detail — we fall back gracefully)
-        // Tally by level
 const byLevel = { 1: 0, 2: 0, 3: 0, 4: 0 };
 const offenseFreq = {};
 
-// Use the archive stats endpoint which correctly filters by SY + quarter
+// Use archive stats if available
 if (stats.by_level) {
     Object.assign(byLevel, stats.by_level);
 }
-
-// Only fetch violations if the archive endpoint also returns them
 if (stats.violations) {
     stats.violations.forEach(v => {
         const key = v.offense || 'Unknown';
         offenseFreq[key] = (offenseFreq[key] || 0) + 1;
     });
 } else if (stats.top_offenses) {
-    // Use pre-tallied top offenses if backend provides them
     stats.top_offenses.forEach(o => {
         offenseFreq[o.offense || o.title] = o.count;
     });
 }
 
+// If all zeros, fall back to live violations table
+const byLevelSumCheck = (byLevel[1]||0)+(byLevel[2]||0)+(byLevel[3]||0)+(byLevel[4]||0);
+if (byLevelSumCheck === 0) {
+    try {
+        const liveRes = await apiFetch(
+            `${API_BASE}/get_violations.php?school_year_id=${syId}${_printPeriod === 'quarter' ? `&quarter=${quarter}` : ''}`
+        ).then(r => r.json()).catch(() => ({ success: false }));
+
+        if (liveRes.success && liveRes.violations && liveRes.violations.length) {
+            liveRes.violations.forEach(v => {
+                const lvl = parseInt(v.offense_level);
+                if (byLevel[lvl] !== undefined) byLevel[lvl]++;
+                const key = v.offense || 'Unknown';
+                offenseFreq[key] = (offenseFreq[key] || 0) + 1;
+            });
+        }
+    } catch(e) { console.error('Live violations fallback failed:', e); }
+}
         // Top 5 offenses sorted by frequency
         const topOffenses = Object.entries(offenseFreq)
             .sort((a, b) => b[1] - a[1])
