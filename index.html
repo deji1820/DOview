@@ -153,6 +153,16 @@ async function showAddViolation() {
     await Promise.all([loadOffenseTypes(), loadTeachers()]);
     updateReferencePanel();
     renderReporterDropdown('');
+
+    // Pre-fill reporter as the logged-in admin
+    const repInput = document.getElementById('avReporterInput');
+    const repId    = document.getElementById('avReporterTeacherId');
+    if (repInput && !repInput.value) {
+        const adminName = document.getElementById('userNameDisplay')?.textContent
+                       || document.querySelector('.user-name')?.textContent
+                       || '';
+        repInput.value = adminName;
+    }
 }
 
 // ════════════════════════════════════════════════════════════
