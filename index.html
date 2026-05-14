@@ -2235,7 +2235,10 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
                     </div>
                 </div>
                 <div id="newReferralForm" class="new-referral-form hidden">
-                    <h2 class="form-title">New Referral</h2>
+    <button type="button" class="back-button" onclick="document.getElementById('newReferralForm').classList.add('hidden'); document.getElementById('referralHistory').style.display='block';">
+        <div class="back-icon">←</div><span>Referral History</span>
+    </button>
+    <h2 class="form-title">New Referral</h2>
                     <form id="referralForm" onsubmit="return false;">
                         <div class="referral-form-row">
     <label class="referral-form-label">Student ID:</label>
@@ -2264,7 +2267,6 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
 </div>
                         <div class="referral-form-row"><label class="referral-form-label">Remarks / Notes:</label><textarea class="referral-form-textarea" placeholder="Type your remarks / notes here"></textarea></div>
                         <div class="referral-form-actions">
-    <button type="button" class="btn-print" style="background:#a8a8a8;color:#fff;" onclick="document.getElementById('newReferralForm').classList.add('hidden'); document.getElementById('referralHistory').style.display='block';">← Back</button>
     <button type="submit" class="btn-send">Send</button>
 </div>
                     </form>
