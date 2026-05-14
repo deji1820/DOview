@@ -2263,7 +2263,10 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
     </div>
 </div>
                         <div class="referral-form-row"><label class="referral-form-label">Remarks / Notes:</label><textarea class="referral-form-textarea" placeholder="Type your remarks / notes here"></textarea></div>
-                        <div class="referral-form-actions"><button type="button" class="btn-print">Print</button><button type="submit" class="btn-send">Send</button></div>
+                        <div class="referral-form-actions">
+    <button type="button" class="btn-print" style="background:#a8a8a8;color:#fff;" onclick="document.getElementById('newReferralForm').classList.add('hidden'); document.getElementById('referralHistory').style.display='block';">← Back</button>
+    <button type="submit" class="btn-send">Send</button>
+</div>
                     </form>
                 </div>
             </div>
@@ -2740,6 +2743,7 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
     <!-- ══ FLOATING PRINT BUTTON ══════════════════════════════════ -->
 <button id="floatingPrintBtn" onclick="openPrintReportModal()"
   style="
+    display: none;
     position: fixed;
     bottom: 32px;
     right: 32px;
@@ -2800,6 +2804,8 @@ function hideAllPages() {
      'documentSubmissionPage','documentRequestPage','documentIssuancePage',
      'formTemplatesPage','gmrcPage','gmrcIndividualPage'
     ].forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); });
+    const pb = document.getElementById('floatingPrintBtn');
+if (pb) pb.style.display = 'none';
 }
 
 function toggleAdminDropdown() {
@@ -2865,6 +2871,7 @@ function showDashboard() {
   loadDashboardRecent();
   loadAnnouncement();  
   setMaxDates();
+document.getElementById('floatingPrintBtn').style.display = 'flex';
 }
 
 function navigateToDisciplinaryMeasures() {
