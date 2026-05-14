@@ -281,7 +281,7 @@ function prependToDailyReports(data, reporterName) {
     const ph = tbody.querySelector('td[colspan]');
     if (ph) ph.closest('tr').remove();
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${escHtml(String(data.offense_report_id||''))}</td><td>${escHtml(data.student_name)}</td><td>${escHtml(data.offense)}</td><td>${data.level}</td><td>${escHtml(reporterName)}</td><td>${data.demerits} demerit${data.demerits>1?'s':''} · ${escHtml(data.sanction)}</td><td><a class="action-link" href="#" onclick="editOffenseReport(${data.offense_report_id}, '${escJs(data.student_name)}', '${escJs(data.offense)}', ${data.level}, '${escJs(reporterName)}', ''); return false;">Edit</a> / <a class="action-link" href="#" style="color:#dc3545;" onclick="deleteOffenseReport(${data.offense_report_id}, this); return false;">Delete</a></td>`;
+   tr.innerHTML = `<td>${escHtml(String(data.offense_report_id||''))}</td><td>${escHtml(data.student_name)} <span style="color:#888;font-size:12px;">(${escHtml(data.student_number||'')})</span></td><td>${escHtml(data.offense)}</td><td>${data.level}</td><td>${escHtml(reporterName)}</td><td>${data.demerits} demerit${data.demerits>1?'s':''} · ${escHtml(data.sanction)}</td><td><a class="action-link" href="#" onclick="editOffenseReport(${data.offense_report_id}, '${escJs(data.student_name)}', '${escJs(data.offense)}', ${data.level}, '${escJs(reporterName)}', ''); return false;">Edit</a> / <a class="action-link" href="#" style="color:#dc3545;" onclick="deleteOffenseReport(${data.offense_report_id}, this); return false;">Delete</a></td>`;
     tbody.prepend(tr);
     initPagination('daily-reports','tbody-daily-reports',10);
 }
@@ -309,7 +309,7 @@ async function loadDailyReports(dateStr) {
             tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#aaa;padding:30px;">No violations recorded${dateStr?' for this date':''}.`;
             initPagination('daily-reports','tbody-daily-reports',10); return;
         }
-        tbody.innerHTML = data.violations.map(v=>`<tr><td>${escHtml(v.student_number)}</td><td>${escHtml(v.student_name)}</td><td>${escHtml(v.offense||'—')}</td><td>${v.offense_level||'—'}</td><td>${escHtml(v.reporter_name||'—')}</td><td>${escHtml(v.remarks||'N/A')}</td><td><a class="action-link" href="#" onclick="editOffenseReport(${v.offense_report_id}, '${escJs(v.student_name)}', '${escJs(v.offense||'')}', ${v.offense_level||1}, '${escJs(v.reporter_name||'')}', '${escJs(v.remarks||'')}'); return false;">Edit</a> / <a class="action-link" href="#" style="color:#dc3545;" onclick="deleteOffenseReport(${v.offense_report_id}, this); return false;">Delete</a></td></tr>`).join('');
+        tbody.innerHTML = data.violations.map(v=>`<tr><td>${escHtml(String(v.offense_report_id||''))}</td><td>${escHtml(v.student_name)} <span style="color:#888;font-size:12px;">(${escHtml(v.student_number||'')})</span></td><td>${escHtml(v.offense||'—')}</td><td>${v.offense_level||'—'}</td><td>${escHtml(v.reporter_name||'—')}</td><td>${escHtml(v.remarks||'N/A')}</td><td><a class="action-link" href="#" onclick="editOffenseReport(${v.offense_report_id}, '${escJs(v.student_name)}', '${escJs(v.offense||'')}', ${v.offense_level||1}, '${escJs(v.reporter_name||'')}', '${escJs(v.remarks||'')}'); return false;">Edit</a> / <a class="action-link" href="#" style="color:#dc3545;" onclick="deleteOffenseReport(${v.offense_report_id}, this); return false;">Delete</a></td></tr>`).join('');
         initPagination('daily-reports','tbody-daily-reports',10);
     } catch(err) {
         console.error('loadDailyReports:', err);
@@ -2110,7 +2110,7 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
                 </div>
                 <div class="reports-table-wrapper">
                     <table class="reports-table">
-                        <thead><tr><th>ID</th><th>Name</th><th>Offense</th><th>Level</th><th>Reported by</th><th>Remarks</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Offense ID</th><th>Name</th><th>Offense</th><th>Level</th><th>Reported by</th><th>Remarks</th><th>Action</th></tr></thead>
                         <tbody id="tbody-daily-reports"></tbody>
                     </table>
                     <div class="pagination-container">
