@@ -462,6 +462,21 @@ document.addEventListener('DOMContentLoaded', () => {
     showDashboard();
     loadTeachers();
     loadOffenseTypes();
+    async function loadDOUser() {
+    try {
+        const res  = await apiFetch(`${API_BASE}/get_do.php`);
+        const data = await res.json();
+        if (data.success && data.full_name) {
+            const nameEl  = document.getElementById('userNameDisplay');
+            const emailEl = document.getElementById('userEmailDisplay');
+            if (nameEl)  nameEl.textContent  = data.full_name;
+            if (emailEl) emailEl.textContent = data.email || 'admin.himc.edu.ph';
+            // Also update the dropdown header
+            const ddName = document.querySelector('#adminDropdown div[style*="font-weight:700"]');
+            if (ddName) ddName.textContent = data.full_name;
+        }
+    } catch(err) { console.error('loadDOUser:', err); }
+}
 });
 
 // ════════════════════════════════════════════════════════════
@@ -1918,8 +1933,8 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
                     <div class="user-info" onclick="toggleAdminDropdown()" style="position:relative;">
                         <div class="user-avatar">👤</div>
                         <div class="user-details">
-                            <div class="user-name">Admin 1</div>
-                            <div class="user-email">admin.himc.edu.ph</div>
+                            <div class="user-name" id="userNameDisplay">Admin</div>
+<div class="user-email" id="userEmailDisplay">admin.himc.edu.ph</div>
                         </div>
                         <span class="dropdown-arrow">▼</span>
 
