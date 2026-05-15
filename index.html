@@ -462,21 +462,24 @@ document.addEventListener('DOMContentLoaded', () => {
     showDashboard();
     loadTeachers();
     loadOffenseTypes();
-    async function loadDOUser() {
+    loadDOUser();
+});
+
+async function loadDOUser() {
     try {
         const res  = await apiFetch(`${API_BASE}/get_do.php`);
         const data = await res.json();
         if (data.success && data.full_name) {
-            const nameEl  = document.getElementById('userNameDisplay');
-            const emailEl = document.getElementById('userEmailDisplay');
-            if (nameEl)  nameEl.textContent  = data.full_name;
-            if (emailEl) emailEl.textContent = data.email || 'admin.himc.edu.ph';
-            // Also update the dropdown header
-            const ddName = document.querySelector('#adminDropdown div[style*="font-weight:700"]');
-            if (ddName) ddName.textContent = data.full_name;
+            const nameEl    = document.getElementById('userNameDisplay');
+            const emailEl   = document.getElementById('userEmailDisplay');
+            const ddNameEl  = document.getElementById('adminDropdownName');
+            const ddEmailEl = document.getElementById('adminDropdownEmail');
+            if (nameEl)    nameEl.textContent    = data.full_name;
+            if (emailEl)   emailEl.textContent   = data.email || 'admin.himc.edu.ph';
+            if (ddNameEl)  ddNameEl.textContent  = data.full_name;
+            if (ddEmailEl) ddEmailEl.textContent = data.email || 'admin.himc.edu.ph';
         }
     } catch(err) { console.error('loadDOUser:', err); }
-}
 });
 
 // ════════════════════════════════════════════════════════════
@@ -1943,9 +1946,9 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
                             background:#fff;border-radius:10px;min-width:220px;
                             box-shadow:0 4px 24px rgba(0,0,0,0.15);z-index:9999;overflow:hidden;">
                             <div style="padding:15px 18px;border-bottom:1px solid #eee;">
-                                <div style="font-size:15px;font-weight:700;color:#1e1838;">Admin 1</div>
-                                <div style="font-size:12px;color:#888;margin-top:2px;">admin.himc.edu.ph</div>
-                            </div>
+    <div style="font-size:15px;font-weight:700;color:#1e1838;" id="adminDropdownName">Admin</div>
+    <div style="font-size:12px;color:#888;margin-top:2px;" id="adminDropdownEmail">admin.himc.edu.ph</div>
+</div>
                             <div onclick="showAdminComingSoon('Edit Username')" style="
                                 padding:13px 18px;font-size:14px;color:#1e1838;
                                 display:flex;align-items:center;gap:10px;cursor:pointer;
