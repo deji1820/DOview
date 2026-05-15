@@ -1950,12 +1950,7 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
     <div style="font-size:15px;font-weight:700;color:#1e1838;" id="adminDropdownName">Admin</div>
     <div style="font-size:12px;color:#888;margin-top:2px;" id="adminDropdownEmail">admin.himc.edu.ph</div>
 </div>
-                            <div onclick="showChangePasswordModal()" style="
-    padding:13px 18px;font-size:14px;color:#1e1838;
-    display:flex;align-items:center;gap:10px;cursor:pointer;
-    transition:background 0.2s;">
-    <span>🔒</span> Change Password
-</div>
+                            
                             <div onclick="adminLogout()" style="
                                 padding:13px 18px;font-size:14px;color:#dc3545;
                                 display:flex;align-items:center;gap:10px;cursor:pointer;
@@ -3773,54 +3768,6 @@ async function loadGMRCSections() {
     } catch(err) {
         console.error('loadGMRCSections:', err);
     }
-}
-
-function showChangePasswordModal() {
-    const dd = document.getElementById('adminDropdown');
-    if (dd) dd.style.display = 'none';
-
-    HimcModal.form(
-        '🔒 Change Password',
-        `<div class="hf-row"><label class="hf-label">Current Password</label>
-            <input class="hf-input" type="password" id="cp-current" placeholder="Enter current password"></div>
-         <div class="hf-row"><label class="hf-label">New Password</label>
-            <input class="hf-input" type="password" id="cp-new" placeholder="At least 8 characters"></div>
-         <div class="hf-row"><label class="hf-label">Confirm</label>
-            <input class="hf-input" type="password" id="cp-confirm" placeholder="Re-enter new password"></div>`,
-        async function () {
-            const current = document.getElementById('cp-current').value.trim();
-            const newPass = document.getElementById('cp-new').value.trim();
-            const confirm = document.getElementById('cp-confirm').value.trim();
-
-            if (!current)           { HimcModal.setError('Please enter your current password.'); return; }
-            if (newPass.length < 8) { HimcModal.setError('New password must be at least 8 characters.'); return; }
-            if (newPass !== confirm) { HimcModal.setError('Passwords do not match.'); return; }
-
-            HimcModal.setLoading();
-            try {
-                const res  = await apiFetch(`${API_BASE}/change_password.php`, {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({
-                        role:         'do',
-                        current_password: current,
-                        new_password: newPass
-                    }),
-                });
-                const data = await res.json();
-                if (data.success) {
-                    HimcModal.close();
-                    HimcModal.info('Password Changed', 'Your password has been updated successfully.');
-                } else {
-                    HimcModal.setError(data.message || 'Failed to update password.');
-                    HimcModal.resetLoading();
-                }
-            } catch (err) {
-                HimcModal.setError('Network error. Please try again.');
-                HimcModal.resetLoading();
-            }
-        }
-    );
 }
 
 function populateGMRCGradeFilter() {
