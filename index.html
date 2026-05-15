@@ -479,7 +479,8 @@ async function loadDOUser() {
             if (ddNameEl)  ddNameEl.textContent  = data.full_name;
             if (ddEmailEl) ddEmailEl.textContent = data.email || 'admin.himc.edu.ph';
         }
-    } catch(err) { console.error('loadDOUser:', err); }
+   } catch(err) { console.error('loadDOUser:', err); }
+}
 
 
 // ════════════════════════════════════════════════════════════
