@@ -2361,8 +2361,7 @@ function buildPrintHTML({ syLabel, periodLabel, byLevel, topOffenses, totalOffen
             
             <div class="history-container">
                 <div class="form-templates-actions"><button class="btn-upload-template">Upload Template</button><button class="btn-update-template">Update</button></div>
-                <div class="form-templates-search-bar"><div class="search-wrapper"><span class="search-icon">🔍</span><input type="text" id="templateSearch" class="form-template-search-input" placeholder="Search"></div><select class="form-template-filter"><option>Filter by</option><option>Date Added</option><option>Template Type</option></select></div>
-                <div class="form-templates-table-wrapper"><table class="form-templates-table"><thead><tr><th>Form Name</th><th>Description</th><th>Appears In</th><th>Last Update</th><th>Action</th></tr></thead><tbody><tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr></tbody></table></div>
+<div class="form-templates-table-wrapper">...<table class="form-templates-table"><thead><tr><th>Form Name</th><th>Description</th><th>Appears In</th><th>Last Update</th><th>Action</th></tr></thead><tbody><tr><td colspan="5" style="text-align:center;color:#aaa;padding:30px;">Loading…</td></tr></tbody></table></div>
             </div>
         </div>
 
@@ -3220,7 +3219,7 @@ function renderFTTable(templates) {
     }).join('');
  
     // Re-wire search filter
-    ftApplySearch();
+  
 }
 
 window.deleteFTTemplate = async function(templateId) {
@@ -3251,20 +3250,7 @@ window.deleteFTTemplate = async function(templateId) {
 };
  
 // ── Search ───────────────────────────────────────────────────
-function ftApplySearch() {
-    const input = document.getElementById('templateSearch');
-    if (!input || input._ftWired) return;
-    input._ftWired = true;
-    input.addEventListener('input', function() {
-        const q = this.value.toLowerCase();
-        renderFTTable(q
-            ? ftTemplatesData.filter(t =>
-                (t.template_name||'').toLowerCase().includes(q) ||
-                (t.description||'').toLowerCase().includes(q))
-            : ftTemplatesData
-        );
-    });
-}
+
  
 // ── Patch navigateToFormTemplates ────────────────────────────
 const _origNavFormTemplates = window.navigateToFormTemplates;
