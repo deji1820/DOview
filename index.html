@@ -148,21 +148,17 @@ async function showAddViolation() {
     const box = document.getElementById('av-student-lookup-box');
     if (box) { box.className = 'av-student-lookup-box empty'; box.textContent = ''; }
 
-    initStudentIdLookup(); // wire up AFTER modal is visible
+    initStudentIdLookup();
 
     await Promise.all([loadOffenseTypes(), loadTeachers()]);
     updateReferencePanel();
     renderReporterDropdown('');
 
-    // Pre-fill reporter as the logged-in admin
+    // Reporter field starts blank — user must search
     const repInput = document.getElementById('avReporterInput');
     const repId    = document.getElementById('avReporterTeacherId');
-    if (repInput && !repInput.value) {
-        const adminName = document.getElementById('userNameDisplay')?.textContent
-                       || document.querySelector('.user-name')?.textContent
-                       || '';
-        repInput.value = adminName;
-    }
+    if (repInput) repInput.value = '';
+    if (repId)    repId.value   = '';
 }
 
 // ════════════════════════════════════════════════════════════
